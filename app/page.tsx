@@ -29,11 +29,11 @@ const ORGANIZATION_ROSTER = {
   eboard: [
     { name: "Cannon Spencer", role: "President", degree: "CPE '26", image: "/images/teams/gatr1/CannonSpencer.png", linkedin: "https://linkedin.com/" },
     { name: "Sarah Kim", role: "External Vice President", degree: "ACT '27", image: "/images/teams/gatr2/SarahKim_Notebooker.png", linkedin: "https://linkedin.com/" },
-    { name: "Alan Gage", role: "Internal Vice President", degree: "ME '25", image: "/images/teams/gatr1/AlanGage.png", linkedin: "https://linkedin.com/" },
+    { name: "Alan Gage", role: "Internal Vice President", degree: "ME '25", image: "/images/teams/gatr1/AlanGage.webp", linkedin: "https://linkedin.com/" },
   ],
   gatr1: [
     { name: "Davis Lester", role: "Team Captain", degree: "EE '28", image: "/images/teams/gatr1/DavisLester.jpg", linkedin: "https://linkedin.com/" },
-    { name: "Logan Thomley", role: "Research Lead", degree: "CS '28", image: "/images/teams/gatr1/LoganThomley.png", linkedin: "https://github.com/LThmly" },
+    { name: "Logan Thomley", role: "Research Lead", degree: "CS '28", image: "/images/teams/gatr1/LoganThomley.webp", linkedin: "https://linkedin.com/" },
     { name: "Jason Iduyan", role: "Design Lead", degree: "CPE '29", image: "/images/teams/gatr1/JasonIduyan.png", linkedin: "https://linkedin.com/" },
     { name: "Lizzie Marchand", role: "Documentation Lead", degree: "ARC '29", image: "/images/teams/gatr1/LizzieMarchand.png", linkedin: "https://linkedin.com/" },
     { name: "Brian Lin", role: "Mechanical Engineer", degree: "ME '29", image: "/images/teams/gatr1/BrianLin.png", linkedin: "https://linkedin.com/" },
@@ -43,26 +43,26 @@ const ORGANIZATION_ROSTER = {
     { name: "Sebastian Lopez", role: "Software Engineer", degree: "CE '29", image: "/images/teams/gatr1/SebastianLopez.png", linkedin: "https://linkedin.com/" },
   ],
   gatr2: [
-    { name: "Lucas Salas", role: "Team Captain", degree: "ME '27", image: "/images/teams/gatr2/LucasSalas_Captain.png", linkedin: "" },
-    { name: "Ryan Littler", role: "Design Lead", degree: "CE '28", image: "/images/teams/gatr2/RyanLittler_DesignLead.png", linkedin: "" },
-    { name: "Will Schweisguth", role: "Designer", degree: "ME '28", image: "/images/teams/gatr2/WillSchweisguth_Designer.png", linkedin: "" },
-    { name: "Anastacia Delany", role: "Build Lead", degree: "CS '29", image: "/images/teams/gatr2/AnastaciaDelany_BuildLead.png", linkedin: "" },
-    { name: "David Arceo", role: "Strategy Lead", degree: "ME '29", image: "/images/teams/gatr2/DavidArceo_StrategyLead.png", linkedin: "" },
-    { name: "Brady Warner", role: "Programming Lead", degree: "EE '29", image: "/images/teams/gatr2/BradyWarner_ProgrammingLead.png", linkedin: "" },
-    { name: "Connor Martin", role: "Programmer", degree: "EE '29", image: "/images/teams/gatr2/ConnorMartin_Programmer.png", linkedin: "" },
-    { name: "Emanuele Cavallaro", role: "Designer", degree: "EE '29", image: "/images/teams/gatr2/EmanueleCavallaro_Designer.png", linkedin: "" },
+    { name: "Lucas Salas", role: "Team Captain", degree: "ME '27", image: "/images/teams/gatr2/LucasSalas_Captain.png", linkedin: "https://linkedin.com/" },
+    { name: "Ryan Littler", role: "Design Lead", degree: "CE '28", image: "/images/teams/gatr2/RyanLittler_DesignLead.png", linkedin: "https://linkedin.com/" },
+    { name: "Will Schweisguth", role: "Designer", degree: "ME '28", image: "/images/teams/gatr2/WillSchweisguth_Designer.png", linkedin: "https://linkedin.com/" },
+    { name: "Anastacia Delany", role: "Build Lead", degree: "CS '29", image: "/images/teams/gatr2/AnastaciaDelany_BuildLead.png", linkedin: "https://linkedin.com/" },
+    { name: "David Arceo", role: "Strategy Lead", degree: "ME '29", image: "/images/teams/gatr2/DavidArceo_StrategyLead.png", linkedin: "https://linkedin.com/" },
+    { name: "Brady Warner", role: "Programming Lead", degree: "EE '29", image: "/images/teams/gatr2/BradyWarner_ProgrammingLead.png", linkedin: "https://linkedin.com/" },
+    { name: "Connor Martin", role: "Programmer", degree: "EE '29", image: "/images/teams/gatr2/ConnorMartin_Programmer.png", linkedin: "https://linkedin.com/" },
+    { name: "Emanuele Cavallaro", role: "Designer", degree: "EE '29", image: "/images/teams/gatr2/EmanueleCavallaro_Designer.png", linkedin: "https://linkedin.com/" },
     { name: "Hector Nava", role: "Builder", degree: "EE '29", image: "/images/teams/gatr2/HectorNava_Builder.jpg", linkedin: "" },
-    { name: "Joseph Cavnar", role: "Designer", degree: "EE '29", image: "/images/teams/gatr2/JosephCavnar_Designer.png", linkedin: "" },
-    { name: "Kaitlyn Campo", role: "Designer", degree: "EE '29", image: "/images/teams/gatr2/KaitlynCampo_Designer.png", linkedin: "" },
-    { name: "Khang Lam", role: "Builder", degree: "EE '29", image: "/images/teams/gatr2/KhangLam_Builder.png", linkedin: "" },
-    { name: "Kyle Resetar", role: "Designer", degree: "EE '29", image: "/images/teams/gatr2/KyleResetar_Designer.png", linkedin: "" },
-    { name: "Maxene Davis", role: "Builder", degree: "EE '29", image: "/images/teams/gatr2/MaxeneDavis_Builder.png", linkedin: "" },
-    { name: "Nathan Hinkle", role: "Builder", degree: "EE '29", image: "/images/teams/gatr2/NathanHinkle_Builder.png", linkedin: "" },
-    { name: "Nathaniel Levine", role: "Notebooker", degree: "EE '29", image: "/images/teams/gatr2/NathanielLevine_Notebooker.png", linkedin: "" },
-    { name: "Safid Alam", role: "Builder", degree: "EE '29", image: "/images/teams/gatr2/SafidAlam_Builder.png", linkedin: "" },
-    { name: "Seanpaul Areas", role: "Notebooker", degree: "EE '29", image: "/images/teams/gatr2/SeanpaulAreas_Notebooker.png", linkedin: "" },
-    { name: "Sebastian Vasquez", role: "Designer", degree: "EE '29", image: "/images/teams/gatr2/SebastianVasquez_Designer.png", linkedin: "" },
-    { name: "Vennela Sadineni", role: "Notebook Lead", degree: "EE '29", image: "/images/teams/gatr2/VennelaSadineni_NotebookLead.png", linkedin: "" },
+    { name: "Joseph Cavnar", role: "Designer", degree: "EE '29", image: "/images/teams/gatr2/JosephCavnar_Designer.png", linkedin: "https://linkedin.com/" },
+    { name: "Kaitlyn Campo", role: "Designer", degree: "EE '29", image: "/images/teams/gatr2/KaitlynCampo_Designer.png", linkedin: "https://linkedin.com/" },
+    { name: "Khang Lam", role: "Builder", degree: "EE '29", image: "/images/teams/gatr2/KhangLam_Builder.png", linkedin: "https://linkedin.com/" },
+    { name: "Kyle Resetar", role: "Designer", degree: "EE '29", image: "/images/teams/gatr2/KyleResetar_Designer.png", linkedin: "https://linkedin.com/" },
+    { name: "Maxene Davis", role: "Builder", degree: "EE '29", image: "/images/teams/gatr2/MaxeneDavis_Builder.png", linkedin: "https://linkedin.com/" },
+    { name: "Nathan Hinkle", role: "Builder", degree: "EE '29", image: "/images/teams/gatr2/NathanHinkle_Builder.png", linkedin: "https://linkedin.com/" },
+    { name: "Nathaniel Levine", role: "Notebooker", degree: "EE '29", image: "/images/teams/gatr2/NathanielLevine_Notebooker.png", linkedin: "https://linkedin.com/" },
+    { name: "Safid Alam", role: "Builder", degree: "EE '29", image: "/images/teams/gatr2/SafidAlam_Builder.png", linkedin: "https://linkedin.com/" },
+    { name: "Seanpaul Areas", role: "Notebooker", degree: "EE '29", image: "/images/teams/gatr2/SeanpaulAreas_Notebooker.png", linkedin: "https://linkedin.com/" },
+    { name: "Sebastian Vasquez", role: "Designer", degree: "EE '29", image: "/images/teams/gatr2/SebastianVasquez_Designer.png", linkedin: "https://linkedin.com/" },
+    { name: "Vennela Sadineni", role: "Notebook Lead", degree: "EE '29", image: "/images/teams/gatr2/VennelaSadineni_NotebookLead.png", linkedin: "https://linkedin.com/" },
   ],
   past: [
     { name: "Ailey Smith", role: "GATR 1", degree: "ME '28" },
@@ -152,9 +152,9 @@ export default function LabWebsite() {
           <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-6 border-b border-zinc-100 pb-2">Latest Updates</h3>
           <div className="space-y-6">
             {NEWS_UPDATES.map((item, i) => (
-              <div key={i} className="group cursor-pointer">
+              <div key={i}>
                 <div className="text-[10px] font-bold text-orange-600 mb-1">{item.date}</div>
-                <div className="text-sm font-semibold text-zinc-900 group-hover:text-blue-700 transition-colors leading-snug">
+                <div className="text-sm font-semibold text-zinc-900 leading-snug">
                   {item.title}
                 </div>
               </div>
