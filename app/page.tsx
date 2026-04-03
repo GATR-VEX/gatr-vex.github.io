@@ -232,8 +232,8 @@ export default function LabWebsite() {
     </div>
   );
 
-  return (
-    <div className="min-h-screen bg-white text-zinc-900 selection:bg-orange-100 selection:text-orange-900 w-full overflow-x-hidden overscroll-none">
+return (
+    <div className="min-h-screen bg-white text-zinc-900 selection:bg-orange-100 selection:text-orange-900 w-full overflow-x-hidden">
       <nav className="fixed top-0 w-full z-50 border-b border-zinc-100 bg-white/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col md:flex-row justify-between items-center gap-4">
           
