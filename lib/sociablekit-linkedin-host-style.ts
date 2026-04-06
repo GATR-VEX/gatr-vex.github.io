@@ -1,0 +1,72 @@
+import type { CSSProperties } from "react";
+
+/**
+ * Inline CSS variables SociableKIT applies to div.sk-ww-linkedin-page-post when the
+ * widget loads (layout columns, typography, colors). Without these, a static snapshot
+ * still renders but looks “unformatted” compared to the live embed.
+ */
+export const SOCIABLEKIT_LINKEDIN_PAGE_POST_CSS_VARS = {
+  "--column-count": 3,
+  "--show-profile-picture": "block",
+  "--show-profile-name": "block",
+  "--show-profile-description": "block",
+  "--show-profile-follower-count": "block",
+  "--show-profile-employees-count": "block",
+  "--show-organization-type": "block",
+  "--show-address": "block",
+  "--show-profile-follow-button": "flex",
+  "--show-profile-website": "flex",
+  "--show-profile-button-at-bottom": "flex",
+  "--post-height": "500px",
+  "--item-content-padding": "24px",
+  "--item-border-radius": "12px",
+  "--show-circular-main-picture": "50%",
+  "--show-widget-border-radius": 0,
+  "--widget-padding": "0px",
+  "--show-post-profile-image": "block",
+  "--show-post-profile-name": "block",
+  "--show-post-likes-count": "flex",
+  "--show-post-comments-count": "flex",
+  "--show-post-icon": "block",
+  "--show-box-shadow": 0.2,
+  "--show-share-icon": "none",
+  "--show-post-date": "block",
+  "--show-image-on-top": "column",
+  "--arrow-color": "#ffffff",
+  "--arrow-background-color": "#000000",
+  "--arrow-opacity": 0.6,
+  "--autoplay": 0.6,
+  "--delay": 1,
+  "--font-family": "Inter",
+  "--title-font-size": "24px",
+  "--details-font-size": "16px",
+  "--title-all-caps": "none",
+  "--details-all-caps": "none",
+  "--profile-name-color": "#555555",
+  "--widget-bg-color": "#FFFFFF",
+  "--widget-font-color": "#314158",
+  "--widget-link-color": "#155dfc",
+  "--details-bg-color": "#ffffff",
+  "--details-font-color": "#1e2939",
+  "--details-link-color": "#155dfc",
+  "--details-link-hover-color": "#193cb8",
+  "--details-secondary-font-color": "#4a5565",
+  "--article-bg-color": "#ffffff",
+  "--article-text-color": "#314158",
+  "--button-bg-color": "#000000",
+  "--button-text-color": "#ffffff",
+  "--button-hover-bg-color": "#314158",
+  "--button-hover-text-color": "#ffffff",
+  "--show-load-more-button": "block",
+  "--pop-up-bg-color": "#ffffff",
+  "--pop-up-font-color": "#1e2939",
+  "--pop-up-link-color": "#155dfc",
+  "--show-stats-section": "flex",
+  "--show-seperator": "flex",
+  "--show-info-section": "flex",
+  "--show-profile-section": "flex",
+} as const;
+
+export function sociablekitLinkedInPagePostHostStyle(): CSSProperties {
+  return SOCIABLEKIT_LINKEDIN_PAGE_POST_CSS_VARS as unknown as CSSProperties;
+}
