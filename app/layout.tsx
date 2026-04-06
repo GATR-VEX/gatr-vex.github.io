@@ -8,6 +8,9 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mon
 export const metadata: Metadata = {
   title: "GATR VEX Robotics",
   description: "UF GATR VEX team.",
+  icons: {
+    apple: "/images/logo/icon.png",
+  },
 };
 
 export default function RootLayout({
