@@ -18,6 +18,7 @@ const GithubIcon = ({ className }: { className?: string }) => (
 // ============================================================================
 
 const NEWS_UPDATES = [
+  { date: "APR 2026", title: "GATR1 takes home the Design Award at the VEX Robotics World Championship" },
   { date: "MAR 2026", title: "GATR2 receives an invite to attend the World Championship in St. Louis, Missouri" },
   { date: "FEB 2026", title: "GATR1 ranks #1 in both overall and autonomous skills in Marietta, Georgia, while GATR2 takes home the Judges Award" },
   { date: "FEB 2026", title: "GATR1 wins the Excellence Award at the Bristol Signature Event to qualify for the World Championship" },
