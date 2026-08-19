@@ -26,50 +26,86 @@ const NEWS_UPDATES = [
   { date: "DEC 2025", title: "GATR1 and GATR2 take home the Judges and Design Awards, respectively, in Apopka" },
 ];
 
-const ORGANIZATION_ROSTER = {
+/** Roster line — Role / Major / Year / LinkedIn. Shown as “Major Year”. */
+type RosterMember = {
+  name: string;
+  role: string;
+  major: string;
+  /** Grad year with apostrophe, e.g. '28 */
+  year: string;
+  image?: string;
+  linkedin?: string;
+};
+
+function rosterDegreeLine(m: RosterMember): string {
+  return `${m.major} ${m.year}`;
+}
+
+const ORGANIZATION_ROSTER: {
+  eboard: RosterMember[];
+  gatr1: RosterMember[];
+  gatr2: RosterMember[];
+  alumni: RosterMember[];
+} = {
   eboard: [
-    { name: "Cannon Spencer", role: "President & GATR1 Software Lead", degree: "CPE '26", image: "/images/teams/gatr1/CannonSpencer.png", linkedin: "https://www.linkedin.com/in/cannon-spencer/" },
-    { name: "Sarah Kim", role: "External Vice President", degree: "ACT '27", image: "/images/teams/gatr2/SarahKim_Notebooker.png", linkedin: "https://www.linkedin.com/in/sarahkimuf/" },
-    { name: "Alan Gage", role: "Internal Vice President", degree: "ME '25", image: "/images/teams/gatr1/AlanGage.webp", linkedin: "https://www.linkedin.com/in/alan-gage-929230292/" },
+    { name: "Cannon Spencer", role: "President & Software Lead", major: "CPE", year: "'26", image: "/images/teams/CannonSpencer.png", linkedin: "https://www.linkedin.com/in/cannon-spencer/" },
+    { name: "Sarah Kim", role: "External Vice President", major: "ACT", year: "'27", image: "/images/teams/SarahKim.png", linkedin: "https://www.linkedin.com/in/sarahkimuf/" },
+    { name: "Alan Gage", role: "Internal Vice President", major: "ME", year: "'26", image: "/images/teams/AlanGage.webp", linkedin: "https://www.linkedin.com/in/alan-gage-929230292/" },
   ],
   gatr1: [
-    { name: "Davis Lester", role: "Team Captain & Driver", degree: "EE '28", image: "/images/teams/gatr1/DavisLester.jpg", linkedin: "https://www.linkedin.com/in/davis-lester/" },
-    { name: "Logan Thomley", role: "Research Lead, Build Lead, & Driver", degree: "CS '28", image: "/images/teams/gatr1/LoganThomley.webp", linkedin: "https://www.linkedin.com/in/loganthomley/" },
-    { name: "Jason Iduyan", role: "Design Lead", degree: "CPE '29", image: "/images/teams/gatr1/JasonIduyan.png", linkedin: "https://www.linkedin.com/in/jasoniduyan/" },
-    { name: "Lizzie Marchand", role: "Documentation Lead", degree: "ARC '29", image: "/images/teams/gatr1/LizzieMarchand.png", linkedin: "https://www.linkedin.com/in/elizabeth-marchand-ba8a9a2a5/" },
-    { name: "Brian Lin", role: "Build Team Member", degree: "ME '29", image: "/images/teams/gatr1/BrianLin.png", linkedin: "https://www.linkedin.com/in/brian-linuf/" },
-    { name: "Alec McEwen", role: "Software Team Member", degree: "CE '29", image: "/images/teams/gatr1/AlecMcewen.png", linkedin: "https://www.linkedin.com/in/alec-mcewen-814537366/" },
-    { name: "Zander Dyal", role: "Build & Design Team Member", degree: "ME '28", image: "/images/teams/gatr1/ZanderDyal.jpg", linkedin: "https://www.linkedin.com/in/zander-dyal/" },
-    { name: "Corina Polanco", role: "Build Team Member", degree: "CE '29", image: "/images/teams/gatr1/CorinaPolanco.png", linkedin: "" },
-    { name: "Sebastian Lopez", role: "Build Team Member", degree: "CE '29", image: "/images/teams/gatr1/SebastianLopez.png", linkedin: "https://www.linkedin.com/in/sebaslope/" },
+    { name: "Davis Lester", role: "GATR1 Captain", major: "EE", year: "'28", image: "/images/teams/DavisLester.jpg", linkedin: "https://www.linkedin.com/in/davis-lester/" },
+    { name: "Logan Thomley", role: "Build Lead", major: "CS", year: "'28", image: "/images/teams/LoganThomley.webp", linkedin: "https://www.linkedin.com/in/loganthomley/" },
+    { name: "Jason Iduyan", role: "Designer", major: "CPE", year: "'29", image: "/images/teams/JasonIduyan.png", linkedin: "https://www.linkedin.com/in/jasoniduyan/" },
+    { name: "Lizzie Marchand", role: "Notebooker", major: "ARC", year: "'29", image: "/images/teams/LizzieMarchand.png", linkedin: "https://www.linkedin.com/in/elizabeth-marchand-ba8a9a2a5/" },
+    { name: "Brian Lin", role: "Programmer", major: "ME", year: "'28", image: "/images/teams/BrianLin.png", linkedin: "https://www.linkedin.com/in/brian-linuf/" },
+    { name: "Zander Dyal", role: "Build & Design", major: "ME", year: "'28", image: "/images/teams/ZanderDyal.jpg", linkedin: "https://www.linkedin.com/in/zander-dyal/" },
+    { name: "Corina Polanco", role: "Builder", major: "ME", year: "'29", image: "/images/teams/CorinaPolanco.png", linkedin: "" },
+    { name: "Sebastian Lopez", role: "Build Design and Software", major: "ME", year: "'29", image: "/images/teams/SebastianLopez.png", linkedin: "https://www.linkedin.com/in/sebaslope/" },
+    { name: "Adam Westphal", role: "Notebook & Strategy", major: "PSE", year: "'29", image: "/images/teams/AdamWestphal.png", linkedin: "https://www.linkedin.com/in/adam-westphal-229v2733j/" },
+    { name: "Jacob Sabelli", role: "Build & Design", major: "ME", year: "'29", image: "/images/teams/JacobSabelli.png", linkedin: "https://www.linkedin.com/in/jacob-sabelli-aa2811386/" },
   ],
   gatr2: [
-    { name: "Lucas Salas", role: "Team Captain", degree: "ME '27", image: "/images/teams/gatr2/LucasSalas_Captain.png", linkedin: "https://www.linkedin.com/in/lucas-salas" },
-    { name: "Ryan Littler", role: "Design Lead", degree: "ME '27", image: "/images/teams/gatr2/RyanLittler_DesignLead.png", linkedin: "https://www.linkedin.com/in/ryan-littler/" },
-    { name: "Anastacia Delany", role: "Build Lead", degree: "CS '29", image: "/images/teams/gatr2/AnastaciaDelany_BuildLead.png", linkedin: "https://www.linkedin.com/in/anastacia-delany/" },
-    { name: "Brady Warner", role: "Programming Lead", degree: "ME '28", image: "/images/teams/gatr2/BradyWarner_ProgrammingLead.png", linkedin: "https://www.linkedin.com/in/bradywarner1" },
-    { name: "Vennela Sadineni", role: "Notebook Lead", degree: "EE '29", image: "/images/teams/gatr2/VennelaSadineni_NotebookLead.png", linkedin: "https://www.linkedin.com/in/vennela-sadineni-662811293/" },
-    { name: "David Arceo", role: "Strategy Lead", degree: "ME '29", image: "/images/teams/gatr2/DavidArceo_StrategyLead.png", linkedin: "https://www.linkedin.com/in/david-arceo-zamora/" },
-    { name: "Will Schweisguth", role: "Design Team Member", degree: "ME '28", image: "/images/teams/gatr2/WillSchweisguth_Designer.png", linkedin: "https://www.linkedin.com/in/williamschw/" },
-    { name: "Connor Martin", role: "Programming Team Member", degree: "EE '29", image: "/images/teams/gatr2/ConnorMartin_Programmer.png", linkedin: "https://www.linkedin.com/in/connor-d-martin/" },
-    { name: "Emanuele Cavallaro", role: "Design Team Member", degree: "EE '29", image: "/images/teams/gatr2/EmanueleCavallaro_Designer.png", linkedin: "" },
-    { name: "Hector Nava", role: "Build Team Member", degree: "EE '29", image: "/images/teams/gatr2/HectorNava_Builder.jpg", linkedin: "https://www.linkedin.com/in/hnava12/" },
-    { name: "Joseph Cavnar", role: "Design Team Member", degree: "EE '29", image: "/images/teams/gatr2/JosephCavnar_Designer.png", linkedin: "https://www.linkedin.com/in/joseph-cavnar/" },
-    { name: "Kaitlyn Campo", role: "Design Team Member", degree: "EE '29", image: "/images/teams/gatr2/KaitlynCampo_Designer.png", linkedin: "https://www.linkedin.com/in/kaitlyncampo/" },
-    { name: "Khang Lam", role: "Build Team Member", degree: "EE '29", image: "/images/teams/gatr2/KhangLam_Builder.png", linkedin: "https://www.linkedin.com/in/khang-lam-5b969b30a/" },
-    { name: "Kyle Resetar", role: "Design Team Member", degree: "EE '29", image: "/images/teams/gatr2/KyleResetar_Designer.png", linkedin: "https://www.linkedin.com/in/kyle-resetar-94b171386/" },
-    { name: "Maxene Davis", role: "Build Team Member", degree: "EE '29", image: "/images/teams/gatr2/MaxeneDavis_Builder.png", linkedin: "https://www.linkedin.com/in/maxenedavis/" },
-    { name: "Nathan Hinkle", role: "Build Team Member", degree: "ME '28", image: "/images/teams/gatr2/NathanHinkle_Builder.png", linkedin: "https://www.linkedin.com/in/nathan-hinkle/" },
-    { name: "Nathaniel Levine", role: "Notebook Team Member", degree: "EE '29", image: "/images/teams/gatr2/NathanielLevine_Notebooker.png", linkedin: "https://www.linkedin.com/in/nathaniel-levine/" },
-    { name: "Safid Alam", role: "Build Team Member", degree: "EE '29", image: "/images/teams/gatr2/SafidAlam_Builder.png", linkedin: "" },
-    { name: "Seanpaul Areas", role: "Notebook Team Member", degree: "EE '29", image: "/images/teams/gatr2/SeanpaulAreas_Notebooker.png", linkedin: "" },
-    { name: "Sebastian Vasquez", role: "Design Team Member", degree: "EE '29", image: "/images/teams/gatr2/SebastianVasquez_Designer.png", linkedin: "" },
+    { name: "Will Schweisguth", role: "GATR2 Captain", major: "ME", year: "'28", image: "/images/teams/WillSchweisguth.png", linkedin: "https://www.linkedin.com/in/williamschw/" },
+    { name: "Anastacia Delany", role: "Builder", major: "ME", year: "'29", image: "/images/teams/AnastaciaDelany.png", linkedin: "https://www.linkedin.com/in/anastacia-delany/" },
+    { name: "Brady Warner", role: "Programming Lead", major: "ME", year: "'28", image: "/images/teams/BradyWarner.png", linkedin: "https://www.linkedin.com/in/bradywarner1" },
+    { name: "Vennela Sadineni", role: "Programmer", major: "CPE", year: "'29", image: "/images/teams/VennelaSadineni.png", linkedin: "https://www.linkedin.com/in/vennela-sadineni-662811293/" },
+    { name: "David Arceo", role: "Designer", major: "BE", year: "'27", image: "/images/teams/DavidArceo.png", linkedin: "https://www.linkedin.com/in/david-arceo-zamora/" },
+    { name: "Connor Martin", role: "Programmer", major: "CPE", year: "'28", image: "/images/teams/ConnorMartin.png", linkedin: "https://www.linkedin.com/in/connor-d-martin/" },
+    { name: "Edison Lara-Bojay", role: "Electronics Lead", major: "EE", year: "'28", image: "/images/teams/EdisonLara-Bojay.png", linkedin: "https://www.linkedin.com/in/edison-lara-bojay/" },
+    { name: "Sagan Giardino", role: "Electronics", major: "EE", year: "'28", image: "/images/teams/SaganGiardino.png", linkedin: "https://www.linkedin.com/in/sagangiardino/" },
+    { name: "Hector Nava", role: "Designer", major: "ME", year: "'29", image: "/images/teams/HectorNava.jpg", linkedin: "https://www.linkedin.com/in/hnava12/" },
+    { name: "Joseph Cavnar", role: "Designer", major: "ME", year: "'28", image: "/images/teams/JosephCavnar.png", linkedin: "https://www.linkedin.com/in/joseph-cavnar/" },
+    { name: "Khang Lam", role: "Builder", major: "ME", year: "'29", image: "/images/teams/KhangLam.png", linkedin: "https://www.linkedin.com/in/khang-lam-5b969b30a/" },
+    { name: "Nathan Hinkle", role: "Build", major: "ME", year: "'28", image: "/images/teams/NathanHinkle.png", linkedin: "https://www.linkedin.com/in/nathan-hinkle/" },
+    { name: "Sebastian Vasquez", role: "Designer", major: "ME", year: "'29", image: "/images/teams/SebastianVasquez.png", linkedin: "https://www.linkedin.com/in/sebastian-c-vasquez/" },
   ],
-  past: [
-    { name: "Ailey Smith", role: "GATR 1", degree: "ME '28" },
-    { name: "Eric Steyn", role: "GATR 1", degree: "ME '25" },
-    { name: "Alumni Name", role: "Former President", degree: "EE '24" },
-  ]
+  // Alumni: newest graduation year first; same year alphabetically by last name
+  alumni: [
+    { name: "Safid Alam", role: "GATR2", major: "ME", year: "'29", image: "/images/teams/SafidAlam.png", linkedin: "" },
+    { name: "Seanpaul Areas", role: "GATR2", major: "ASE", year: "'29", image: "/images/teams/SeanpaulAreas.png", linkedin: "" },
+    { name: "Emanuele Cavallaro", role: "GATR2", major: "ME", year: "'29", image: "/images/teams/EmanueleCavallaro.png", linkedin: "" },
+    { name: "Maxene Davis", role: "GATR2", major: "ME", year: "'29", image: "/images/teams/MaxeneDavis.png", linkedin: "https://www.linkedin.com/in/maxenedavis/" },
+    { name: "Nathaniel Levine", role: "GATR2", major: "BBA", year: "'29", image: "/images/teams/NathanielLevine.png", linkedin: "https://www.linkedin.com/in/nathaniel-levine/" },
+    { name: "Alec McEwen", role: "GATR1", major: "CPE", year: "'29", image: "/images/teams/AlecMcewen.png", linkedin: "https://www.linkedin.com/in/alec-mcewen-814537366/" },
+    { name: "Kyle Resetar", role: "GATR2", major: "ME", year: "'29", image: "/images/teams/KyleResetar.png", linkedin: "https://www.linkedin.com/in/kyle-resetar-94b171386/" },
+    { name: "Kaitlyn Campo", role: "GATR2", major: "ME", year: "'28", image: "/images/teams/KaitlynCampo.png", linkedin: "https://www.linkedin.com/in/kaitlyncampo/" },
+    { name: "Ailey Smith", role: "GATR1 Captain", major: "ME", year: "'28", image: "/images/teams/AileySmith.png", linkedin: "https://www.linkedin.com/in/aileyksmith/" },
+    { name: "Ryan Littler", role: "GATR2", major: "ME", year: "'27", image: "/images/teams/RyanLittler.png", linkedin: "https://www.linkedin.com/in/ryan-littler/" },
+    { name: "Lucas Salas", role: "GATR2 Captain", major: "ME", year: "'27", image: "/images/teams/LucasSalas.png", linkedin: "https://www.linkedin.com/in/lucas-salas/" },
+    { name: "Ivan Calderon", role: "GATR2", major: "ME", year: "'26", image: "/images/teams/IvanCalderon.png", linkedin: "https://www.linkedin.com/in/ivan-calex/" },
+    { name: "Madison Chubb", role: "GATR1", major: "AE", year: "'25", image: "/images/teams/MadisonChubb.png", linkedin: "https://www.linkedin.com/in/madison-chubb-0338b4264/" },
+    { name: "Sean Moody", role: "Captain", major: "EE", year: "'25", image: "/images/teams/SeanMoody.png", linkedin: "https://www.linkedin.com/in/smdy-89106b27b/" },
+    { name: "Katelynn Shandik", role: "Captain", major: "CS", year: "'25", image: "/images/teams/KatelynnShandik.png", linkedin: "https://www.linkedin.com/in/katelynn-shandik-693998207/" },
+    { name: "Eric Steyn", role: "President", major: "ME", year: "'25", image: "/images/teams/EricSteyn.png", linkedin: "https://www.linkedin.com/in/ericsteyn/" },
+    { name: "Matthew Darrow", role: "GATR1", major: "CPE", year: "'24", image: "/images/teams/MatthewDarrow.png", linkedin: "https://www.linkedin.com/in/matthew-c-darrow/" },
+    { name: "Thorsten Lannynd", role: "GATR1", major: "CS", year: "'24", image: "/images/teams/ThorstenLannynd.png", linkedin: "https://www.linkedin.com/in/thorstenlannynd/" },
+    { name: "Christian Mosey", role: "GATR1", major: "CS", year: "'24", image: "/images/teams/ChristianMosey.png", linkedin: "https://www.linkedin.com/in/christianmosey/" },
+    { name: "Carson Powers", role: "GATR1", major: "CPE", year: "'24", image: "/images/teams/CarsonPowers.png", linkedin: "https://www.linkedin.com/in/carson-alan-powers/" },
+    { name: "Jack Sopotnick", role: "Captain", major: "ME", year: "'23", image: "/images/teams/JackSopotnick.png", linkedin: "https://www.linkedin.com/in/jack-sopotnick/" },
+    { name: "Adam Ellenbogen", role: "GATR1", major: "ME", year: "'22", image: "/images/teams/AdamEllenbogen.png", linkedin: "https://www.linkedin.com/in/adam-ellenbogen-488478225/" },
+    { name: "Cameron Soviero", role: "President", major: "CPE", year: "'22", image: "/images/teams/CameronSoviero.png", linkedin: "https://www.linkedin.com/in/cameronsoviero/" },
+    { name: "Zachary Soviero", role: "Captain", major: "ECE", year: "'22", image: "/images/teams/ZacharySoviero.png", linkedin: "https://www.linkedin.com/in/zachsoviero/" },
+  ],
 };
 
 // ============================================================================
@@ -82,7 +118,7 @@ const ORGANIZATION_ROSTER = {
  * If a 'linkedin' URL is provided in the data, it automatically wraps the entire 
  * card in a clickable link that opens in a new tab.
  */
-const MemberCard = ({ m }: { m: { name: string, role: string, degree: string, image?: string, linkedin?: string } }) => {
+const MemberCard = ({ m }: { m: RosterMember }) => {
   const cardContent = (
     <div className="group cursor-pointer">
       <div className="aspect-square bg-zinc-100 rounded-2xl mb-4 overflow-hidden border border-zinc-200">
@@ -94,7 +130,7 @@ const MemberCard = ({ m }: { m: { name: string, role: string, degree: string, im
       </div>
       <div className="font-bold text-zinc-900 text-sm group-hover:text-blue-700 transition-colors">{m.name}</div>
       <div className="text-zinc-500 text-xs">{m.role}</div>
-      <div className="text-zinc-400 text-[10px] font-mono mt-1">{m.degree}</div>
+      <div className="text-zinc-400 text-[10px] font-mono mt-1">{rosterDegreeLine(m)}</div>
     </div>
   );
 
@@ -196,24 +232,15 @@ export default function LabWebsite() {
         </div>
       </div>
 
-      {/* Past Members / Alumni}
-      {/* <div className="mb-20">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-6 border-b border-zinc-100 pb-2">Past Members</h3>
-        <p className="text-sm text-zinc-500 mb-8 font-light max-w-2xl">
-          We extend our gratitude to our former members for their foundational contributions to GATR Robotics.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-4">
-          {ORGANIZATION_ROSTER.past.map((m, i) => (
-            <div key={i} className="flex justify-between items-center border-b border-zinc-50 pb-2">
-              <div>
-                <div className="text-sm font-semibold text-zinc-900">{m.name}</div>
-                <div className="text-xs text-zinc-500">{m.role}</div>
-              </div>
-              <div className="text-[10px] font-mono text-zinc-400">{m.degree}</div>
-            </div>
+      {/* Alumni */}
+      <div className="mb-8">
+        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-8 border-b border-zinc-100 pb-2">Alumni</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
+          {ORGANIZATION_ROSTER.alumni.map((m, i) => (
+            <MemberCard key={`${m.name}-${i}`} m={m} />
           ))}
         </div>
-      </div> */}
+      </div>
     </div>
   );
 
