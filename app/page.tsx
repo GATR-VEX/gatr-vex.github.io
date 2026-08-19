@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Code2, Mail } from 'lucide-react';
+import { ConnectSection } from "@/components/ConnectSection";
 
 // ============================================================================
 // ICONS & ASSETS
@@ -306,21 +307,8 @@ export default function LabWebsite() {
     </div>
   );
 
-  // --- VIEW: JOIN / RECRUITMENT PAGE ---
-  const Join = () => (
-    <div className="py-24 text-center max-w-2xl mx-auto animate-in fade-in duration-500">
-      <h2 className="text-3xl font-bold text-zinc-900 mb-6">Join GATR Robotics</h2>
-      <p className="text-zinc-500 leading-relaxed mb-10 font-light">
-        Interested in robotics? Want to get involved?  
-        Join our discord server and see what we're up to. Open to all majors and no VEX experience required.
-      </p>
-      <div className="flex flex-col md:flex-row gap-4 justify-center">
-        <a href="https://discord.gg/SWP8mvuFSs" className="px-8 py-3 bg-zinc-950 text-white font-semibold rounded-full text-sm hover:bg-orange-600 transition-colors">
-          Discord Server
-        </a>
-      </div>
-    </div>
-  );
+  // --- VIEW: CONNECT ---
+  const Connect = () => <ConnectSection />;
 
 return (
     <div className="min-h-screen bg-white text-zinc-900 selection:bg-orange-100 selection:text-orange-900 w-full overflow-x-hidden">
@@ -337,7 +325,7 @@ return (
           
           {/* Page Links */}
           <div className="flex space-x-8 text-[13px] font-semibold uppercase tracking-widest text-zinc-500">
-            {['home', 'people', 'join'].map((tab) => (
+            {['home', 'people', 'connect'].map((tab) => (
               <button 
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -354,7 +342,7 @@ return (
       <main className="max-w-6xl mx-auto px-6 pt-32 pb-12 min-h-[calc(100vh-100px)]">
         {activeTab === 'home' && <HomeView />}
         {activeTab === 'people' && <People />}
-        {activeTab === 'join' && <Join />}
+        {activeTab === 'connect' && <Connect />}
       </main>
       
     </div>
