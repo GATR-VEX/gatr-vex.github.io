@@ -63,7 +63,7 @@ const ORGANIZATION_ROSTER: {
   eboard: [
     { name: "Cannon Spencer", role: "President & Software Lead", major: "CPE", year: "'26", image: "/images/teams/CannonSpencer.png", linkedin: "https://www.linkedin.com/in/cannon-spencer/" },
     { name: "Sarah Kim", role: "External Vice President", major: "ACT", year: "'27", image: "/images/teams/SarahKim.png", linkedin: "https://www.linkedin.com/in/sarahkimuf/" },
-    { name: "Alan Gage", role: "Internal Vice President", major: "ME", year: "'26", image: "/images/teams/AlanGage.webp", linkedin: "https://www.linkedin.com/in/alan-gage-929230292/" },
+    { name: "Zander Dyal", role: "Internal Vice President", major: "ME", year: "'28", image: "/images/teams/ZanderDyal.jpg", linkedin: "https://www.linkedin.com/in/zander-dyal/" },
   ],
   gatr1: [
     { name: "Davis Lester", role: "GATR1 Captain", major: "EE", year: "'28", image: "/images/teams/DavisLester.jpg", linkedin: "https://www.linkedin.com/in/davis-lester/" },
@@ -71,7 +71,6 @@ const ORGANIZATION_ROSTER: {
     { name: "Jason Iduyan", role: "Designer", major: "CPE", year: "'29", image: "/images/teams/JasonIduyan.png", linkedin: "https://www.linkedin.com/in/jasoniduyan/" },
     { name: "Lizzie Marchand", role: "Notebooker", major: "ARC", year: "'29", image: "/images/teams/LizzieMarchand.png", linkedin: "https://www.linkedin.com/in/elizabeth-marchand-ba8a9a2a5/" },
     { name: "Brian Lin", role: "Programmer", major: "ME", year: "'28", image: "/images/teams/BrianLin.png", linkedin: "https://www.linkedin.com/in/brian-linuf/" },
-    { name: "Zander Dyal", role: "Build & Design", major: "ME", year: "'28", image: "/images/teams/ZanderDyal.jpg", linkedin: "https://www.linkedin.com/in/zander-dyal/" },
     { name: "Corina Polanco", role: "Builder", major: "ME", year: "'29", image: "/images/teams/CorinaPolanco.png", linkedin: "" },
     { name: "Sebastian Lopez", role: "Build Design and Software", major: "ME", year: "'29", image: "/images/teams/SebastianLopez.png", linkedin: "https://www.linkedin.com/in/sebaslope/" },
     { name: "Adam Westphal", role: "Notebook & Strategy", major: "PSE", year: "'29", image: "/images/teams/AdamWestphal.png", linkedin: "https://www.linkedin.com/in/adam-westphal-229v2733j/" },
@@ -106,6 +105,7 @@ const ORGANIZATION_ROSTER: {
     { name: "Ryan Littler", role: "GATR2", major: "ME", year: "'27", image: "/images/teams/RyanLittler.png", linkedin: "https://www.linkedin.com/in/ryan-littler/" },
     { name: "Lucas Salas", role: "GATR2 Captain", major: "ME", year: "'27", image: "/images/teams/LucasSalas.png", linkedin: "https://www.linkedin.com/in/lucas-salas/" },
     { name: "Ivan Calderon", role: "GATR2", major: "ME", year: "'26", image: "/images/teams/IvanCalderon.png", linkedin: "https://www.linkedin.com/in/ivan-calex/" },
+    { name: "Alan Gage", role: "GATR1", major: "ME", year: "'26", image: "/images/teams/AlanGage.webp", linkedin: "https://www.linkedin.com/in/alan-gage-929230292/" },
     { name: "Madison Chubb", role: "GATR1", major: "AE", year: "'25", image: "/images/teams/MadisonChubb.png", linkedin: "https://www.linkedin.com/in/madison-chubb-0338b4264/" },
     { name: "Sean Moody", role: "Captain", major: "EE", year: "'25", image: "/images/teams/SeanMoody.png", linkedin: "https://www.linkedin.com/in/smdy-89106b27b/" },
     { name: "Katelynn Shandik", role: "Captain", major: "CS", year: "'25", image: "/images/teams/KatelynnShandik.png", linkedin: "https://www.linkedin.com/in/katelynn-shandik-693998207/" },
