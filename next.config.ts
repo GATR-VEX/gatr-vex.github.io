@@ -1,10 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'export',
-  
   images: {
     unoptimized: true,
+  },
+  outputFileTracingExcludes: {
+    "*": [
+      "./data/print-queue.json",
+      "./public/uploads/prints/**",
+      "./.env*.local",
+    ],
   },
 };
 

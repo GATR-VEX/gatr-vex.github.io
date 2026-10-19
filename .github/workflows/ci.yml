@@ -27,4 +27,7 @@ jobs:
         run: npm ci
 
       - name: Build with Next.js
+        env:
+          AUTH_SECRET: ci-build-placeholder-secret-not-for-production
+          AUTH_URL: http://localhost:3000
         run: npm run build

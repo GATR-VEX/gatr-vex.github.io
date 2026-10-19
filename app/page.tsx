@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { Code2, Mail } from 'lucide-react';
+import React, { useEffect, useState } from "react";
 import { ConnectSection } from "@/components/ConnectSection";
+import { SiteNav, type MarketingTab } from "@/components/SiteNav";
+import { btnPrimary, pageMain } from "@/lib/ui";
 
 // ============================================================================
 // ICONS & ASSETS
@@ -134,16 +135,20 @@ const ORGANIZATION_ROSTER: {
 const MemberCard = ({ m }: { m: RosterMember }) => {
   const cardContent = (
     <div className="group cursor-pointer">
-      <div className="aspect-square bg-zinc-100 rounded-2xl mb-4 overflow-hidden border border-zinc-200">
-        <img 
-          src={m.image || "/api/placeholder/300/300"} 
-          alt={m.name} 
-          className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105" 
+      <div className="aspect-square bg-surface mb-3 overflow-hidden rounded-2xl">
+        <img
+          src={m.image || "/api/placeholder/300/300"}
+          alt={m.name}
+          className="w-full h-full rounded-2xl object-cover"
         />
       </div>
-      <div className="font-bold text-zinc-900 text-sm group-hover:text-blue-700 transition-colors">{m.name}</div>
-      <div className="text-zinc-500 text-xs">{m.role}</div>
-      <div className="text-zinc-400 text-[10px] font-mono mt-1">{rosterDegreeLine(m)}</div>
+      <div className="font-heading text-[15px] font-medium text-ink group-hover:text-accent transition-colors">
+        {m.name}
+      </div>
+      <div className="text-sm text-ink-muted mt-0.5">{m.role}</div>
+      <div className="text-xs text-ink-muted/80 font-mono mt-1">
+        {rosterDegreeLine(m)}
+      </div>
     </div>
   );
 
@@ -180,10 +185,10 @@ function HomeView() {
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <section className="py-12">
+    <div>
+      <section className="pb-10">
         <div
-          className={`group relative aspect-[21/9] w-full overflow-hidden rounded-[2rem] border border-zinc-200 outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 ${
+          className={`group relative aspect-[21/9] w-full overflow-hidden rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
             HERO_BANNER_IMAGES.length > 1 ? "cursor-pointer" : ""
           }`}
           aria-roledescription="carousel"
@@ -212,7 +217,7 @@ function HomeView() {
               }`}
             />
           ))}
-          <div className="pointer-events-none absolute inset-0 z-[1] bg-zinc-900/10 transition-colors group-hover:bg-transparent" />
+          <div className="pointer-events-none absolute inset-0 z-[1] bg-ink/5" />
           {HERO_BANNER_IMAGES.length > 1 && (
             <div
               className="pointer-events-none absolute bottom-4 left-1/2 z-[2] flex -translate-x-1/2 gap-1.5"
@@ -231,28 +236,37 @@ function HomeView() {
         </div>
       </section>
 
-      <section className="grid md:grid-cols-12 gap-16 py-12">
+      <section className="grid md:grid-cols-12 gap-12 md:gap-16 py-4">
         <div className="md:col-span-8">
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-900 mb-6">GATR VEX Robotics @ UF</h2>
-          <p className="text-lg text-zinc-600 leading-relaxed font-light mb-8">
+          <div className="page-title mb-6">
+            <h2 className="title-text">GATR VEX Robotics @ UF</h2>
+          </div>
+          <p className="text-sm text-ink-muted leading-relaxed mb-8">
             GATR VEX is the premiere robotics competition organization at the University of Florida. 
             We focus on the intersection of mechanical and software design to compete within the VEX U robotics competition. 
             We&apos;re comprised of two teams—GATR1 and GATR2—that function as fully independent competition units. Each team conceptualizes, builds, and programs its own distinct robots, competing alongside one another throughout the season.
           </p>
-          <a href="https://github.com/GATR-VEX" target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-6 py-3 bg-zinc-950 text-white font-semibold rounded-full text-sm hover:bg-orange-600 transition-colors">
+          <a
+            href="https://github.com/GATR-VEX"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={btnPrimary}
+          >
             <GithubIcon className="w-4 h-4 mr-2" /> GitHub Organization
           </a>
         </div>
 
         <div className="md:col-span-4">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-6 border-b border-zinc-100 pb-2">Latest Updates</h3>
-          <div className="space-y-6">
+          <h3 className="font-heading text-sm font-medium text-ink mb-4 pb-2 border-b border-rule">
+            Latest Updates
+          </h3>
+          <div className="space-y-5">
             {NEWS_UPDATES.map((item, i) => (
               <div key={i}>
-                <div className="text-[10px] font-bold text-orange-600 mb-1">{item.date}</div>
-                <div className="text-sm font-semibold text-zinc-900 leading-snug">
-                  {item.title}
+                <div className="text-xs font-medium text-accent mb-1">
+                  {item.date}
                 </div>
+                <div className="text-sm text-ink leading-snug">{item.title}</div>
               </div>
             ))}
           </div>
@@ -262,43 +276,74 @@ function HomeView() {
   );
 }
 
+function parseTab(value: string | null): MarketingTab {
+  if (value === "people" || value === "connect" || value === "home") return value;
+  return "home";
+}
+
 export default function LabWebsite() {
-  // State to track which page the user is currently viewing
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState<MarketingTab>("home");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setActiveTab(parseTab(params.get("tab")));
+  }, []);
+
+  const onTabChange = (tab: MarketingTab) => {
+    setActiveTab(tab);
+    const url = tab === "home" ? "/" : `/?tab=${tab}`;
+    window.history.replaceState(null, "", url);
+  };
 
   // --- VIEW: PEOPLE / ROSTER PAGE ---
   const People = () => (
-    <div className="py-12 animate-in fade-in duration-500">
-      <h2 className="text-2xl font-bold text-zinc-900 mb-12">Meet the Team</h2>
-      
+    <div className="py-2">
+      <div className="page-title mb-12">
+        <h2 className="title-text">Meet the Team</h2>
+      </div>
+
       {/* Executive Board */}
-      <div className="mb-20">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-8 border-b border-zinc-100 pb-2">Executive Board</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-          {ORGANIZATION_ROSTER.eboard.map((m, i) => <MemberCard key={i} m={m} />)}
+      <div className="mb-16">
+        <h3 className="font-heading text-sm font-medium text-ink mb-8 pb-2 border-b border-rule">
+          Executive Board
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-10">
+          {ORGANIZATION_ROSTER.eboard.map((m, i) => (
+            <MemberCard key={i} m={m} />
+          ))}
         </div>
       </div>
 
       {/* GATR1 Roster */}
-      <div className="mb-20">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-8 border-b border-zinc-100 pb-2">GATR 1 Roster</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-          {ORGANIZATION_ROSTER.gatr1.map((m, i) => <MemberCard key={i} m={m} />)}
+      <div className="mb-16">
+        <h3 className="font-heading text-sm font-medium text-ink mb-8 pb-2 border-b border-rule">
+          GATR 1 Roster
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-10">
+          {ORGANIZATION_ROSTER.gatr1.map((m, i) => (
+            <MemberCard key={i} m={m} />
+          ))}
         </div>
       </div>
 
       {/* GATR2 Roster */}
-      <div className="mb-20">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-8 border-b border-zinc-100 pb-2">GATR 2 Roster</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-          {ORGANIZATION_ROSTER.gatr2.map((m, i) => <MemberCard key={i} m={m} />)}
+      <div className="mb-16">
+        <h3 className="font-heading text-sm font-medium text-ink mb-8 pb-2 border-b border-rule">
+          GATR 2 Roster
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-10">
+          {ORGANIZATION_ROSTER.gatr2.map((m, i) => (
+            <MemberCard key={i} m={m} />
+          ))}
         </div>
       </div>
 
       {/* Alumni */}
       <div className="mb-8">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-8 border-b border-zinc-100 pb-2">Alumni</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
+        <h3 className="font-heading text-sm font-medium text-ink mb-8 pb-2 border-b border-rule">
+          Alumni
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-10">
           {ORGANIZATION_ROSTER.alumni.map((m, i) => (
             <MemberCard key={`${m.name}-${i}`} m={m} />
           ))}
@@ -310,41 +355,15 @@ export default function LabWebsite() {
   // --- VIEW: CONNECT ---
   const Connect = () => <ConnectSection />;
 
-return (
-    <div className="min-h-screen bg-white text-zinc-900 selection:bg-orange-100 selection:text-orange-900 w-full overflow-x-hidden">
-      <nav className="fixed top-0 w-full z-50 border-b border-zinc-100 bg-white/80 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col md:flex-row justify-between items-center gap-4">
-          
-          {/* Logo / Title Area */}
-          <div 
-            onClick={() => setActiveTab('home')}
-            className="text-xl font-bold tracking-tight text-zinc-950 cursor-pointer flex items-center gap-2"
-          >
-            GATR VEX<span className="text-zinc-400 font-light">Robotics</span>
-          </div>
-          
-          {/* Page Links */}
-          <div className="flex space-x-8 text-[13px] font-semibold uppercase tracking-widest text-zinc-500">
-            {['home', 'people', 'connect'].map((tab) => (
-              <button 
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`hover:text-blue-700 transition-colors ${activeTab === tab ? 'text-blue-700' : ''}`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+  return (
+    <div className="min-h-screen bg-white text-foreground w-full overflow-x-hidden">
+      <SiteNav activeTab={activeTab} onTabChange={onTabChange} />
 
-        </div>
-      </nav>
-
-      <main className="max-w-6xl mx-auto px-6 pt-32 pb-12 min-h-[calc(100vh-100px)]">
-        {activeTab === 'home' && <HomeView />}
-        {activeTab === 'people' && <People />}
-        {activeTab === 'connect' && <Connect />}
+      <main className={pageMain}>
+        {activeTab === "home" && <HomeView />}
+        {activeTab === "people" && <People />}
+        {activeTab === "connect" && <Connect />}
       </main>
-      
     </div>
   );
 }
