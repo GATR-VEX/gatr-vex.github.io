@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import {
   deletePrintJob,
-  isPrintStatus,
+  updatePrintJob,
   updatePrintJobStatus,
 } from "@/lib/print-queue";
+import {
+  isPrintFileKind,
+  isPrintPriority,
+  isPrintStatus,
+} from "@/lib/print-types";
 import { requireMember } from "@/lib/require-member";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -15,19 +20,62 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   const { id } = await context.params;
-  const body = (await request.json()) as { status?: string };
-  const status = body.status;
+  const body = (await request.json()) as Record<string, unknown>;
 
-  if (!status || !isPrintStatus(status)) {
-    return NextResponse.json({ error: "Invalid status." }, { status: 400 });
+  // Status-only updates (queue dropdown)
+  const keys = Object.keys(body);
+  if (keys.length === 1 && keys[0] === "status") {
+    const status = typeof body.status === "string" ? body.status : "";
+    if (!isPrintStatus(status)) {
+      return NextResponse.json({ error: "Invalid status." }, { status: 400 });
+    }
+    const job = await updatePrintJobStatus(id, status);
+    if (!job) {
+      return NextResponse.json({ error: "Not found." }, { status: 404 });
+    }
+    return NextResponse.json({ job });
   }
 
-  const job = await updatePrintJobStatus(id, status);
-  if (!job) {
-    return NextResponse.json({ error: "Not found." }, { status: 404 });
-  }
+  try {
+    const patch: Parameters<typeof updatePrintJob>[1] = {};
 
-  return NextResponse.json({ job });
+    if (typeof body.name === "string") patch.name = body.name;
+    if (typeof body.description === "string") patch.description = body.description;
+    if (typeof body.material === "string") patch.material = body.material;
+    if (typeof body.color === "string") patch.color = body.color;
+    if (typeof body.neededBy === "string") patch.neededBy = body.neededBy;
+    if (typeof body.layerHeight === "string") patch.layerHeight = body.layerHeight;
+    if (typeof body.infillPercent === "string")
+      patch.infillPercent = body.infillPercent;
+    if (typeof body.printer === "string") patch.printer = body.printer;
+    if (typeof body.team === "string") patch.team = body.team;
+    if (typeof body.notes === "string") patch.notes = body.notes;
+
+    if (typeof body.quantity === "number") {
+      patch.quantity = body.quantity;
+    } else if (typeof body.quantity === "string" && body.quantity.trim()) {
+      patch.quantity = Number(body.quantity);
+    }
+
+    if (typeof body.status === "string" && isPrintStatus(body.status)) {
+      patch.status = body.status;
+    }
+    if (typeof body.priority === "string" && isPrintPriority(body.priority)) {
+      patch.priority = body.priority;
+    }
+    if (typeof body.fileKind === "string" && isPrintFileKind(body.fileKind)) {
+      patch.fileKind = body.fileKind;
+    }
+
+    const job = await updatePrintJob(id, patch);
+    if (!job) {
+      return NextResponse.json({ error: "Not found." }, { status: 404 });
+    }
+    return NextResponse.json({ job });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Could not update.";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {

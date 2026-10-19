@@ -6,7 +6,16 @@
  * DEFAULT_MEMBER_EMAILS are always included as a fallback.
  */
 const DEFAULT_MEMBER_EMAILS: readonly string[] = [
-  "thomley.logan@gmail.com",
+  "davis3lester@gmail.com",
+  "cannon.cms@gmail.com",
+  "logancthomley@gmail.com",
+  "lizzie.marchand42@gmail.com",
+  "jason.iduyan@gmail.com",
+  "zander.d515@gmail.com",
+  "monadoboy55@gmail.com",
+  "jacobsabelli@gmail.com",
+  "awestphal521@gmail.com",
+  "dylan7lester@gmail.com",
 ];
 
 function normalizeEmail(email: string): string {

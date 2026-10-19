@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { createPrintJob, listPrintJobs } from "@/lib/print-queue";
-import { isPrintPriority, type PrintJobInput } from "@/lib/print-types";
+import {
+  isPrintFileKind,
+  isPrintPriority,
+  type PrintJobInput,
+} from "@/lib/print-types";
 import { requireMember } from "@/lib/require-member";
 
 function formString(form: FormData, key: string): string {
@@ -34,6 +38,7 @@ export async function POST(request: Request) {
     const quantityRaw = formString(form, "quantity");
     const quantity = quantityRaw ? Number(quantityRaw) : 1;
     const priorityRaw = formString(form, "priority") || "normal";
+    const fileKindRaw = formString(form, "fileKind") || "needs_slicing";
 
     const fields: PrintJobInput = {
       name: formString(form, "name"),
@@ -47,6 +52,7 @@ export async function POST(request: Request) {
       infillPercent: formString(form, "infillPercent"),
       printer: formString(form, "printer"),
       team: formString(form, "team"),
+      fileKind: isPrintFileKind(fileKindRaw) ? fileKindRaw : "needs_slicing",
       notes: formString(form, "notes"),
     };
 

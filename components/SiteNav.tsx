@@ -44,8 +44,8 @@ export function SiteNav({ activeTab, onTabChange }: SiteNavProps) {
         )}
 
         {/* Fixed nav cluster so Sign in stays in the same spot on every page */}
-        <div className="flex items-center gap-6 md:gap-8 text-[15px] text-ink-muted shrink-0">
-          <nav className="hidden md:flex items-center gap-8">
+        <div className="flex items-center gap-6 md:gap-8 shrink-0">
+          <nav className="hidden md:flex items-center gap-8 font-sans text-[13px] font-semibold tracking-widest text-ink-muted">
             {MARKETING_TABS.map((tab) =>
               useTabs ? (
                 <button
@@ -53,7 +53,7 @@ export function SiteNav({ activeTab, onTabChange }: SiteNavProps) {
                   type="button"
                   onClick={() => onTabChange(tab.id)}
                   className={`hover:text-ink transition-colors ${
-                    activeTab === tab.id ? "text-ink font-medium" : ""
+                    activeTab === tab.id ? "text-ink" : ""
                   }`}
                 >
                   {tab.label}
@@ -74,7 +74,7 @@ export function SiteNav({ activeTab, onTabChange }: SiteNavProps) {
       </div>
 
       {/* Mobile tabs — same links on every page */}
-      <div className="md:hidden flex justify-center gap-6 h-11 items-center text-sm text-ink-muted border-b border-rule">
+      <div className="md:hidden flex justify-center gap-6 h-11 items-center font-sans text-[12px] font-semibold tracking-widest text-ink-muted border-b border-rule">
         {MARKETING_TABS.map((tab) =>
           useTabs ? (
             <button
@@ -82,7 +82,7 @@ export function SiteNav({ activeTab, onTabChange }: SiteNavProps) {
               type="button"
               onClick={() => onTabChange(tab.id)}
               className={`hover:text-ink transition-colors ${
-                activeTab === tab.id ? "text-ink font-medium" : ""
+                activeTab === tab.id ? "text-ink" : ""
               }`}
             >
               {tab.label}

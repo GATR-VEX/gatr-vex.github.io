@@ -20,6 +20,15 @@ export const PRINT_MATERIALS = [
   "Other",
 ] as const;
 
+export const PRINT_PRINTERS = [
+  "Elegoo Centauri Carbon",
+  "Bambu Labs X1 Carbon",
+  "Bambu Labs P1S",
+] as const;
+
+export const PRINT_FILE_KINDS = ["needs_slicing", "ready_to_print"] as const;
+export type PrintFileKind = (typeof PRINT_FILE_KINDS)[number];
+
 export type PrintJob = {
   id: string;
   name: string;
@@ -42,6 +51,7 @@ export type PrintJob = {
   infillPercent: string;
   printer: string;
   team: string;
+  fileKind: PrintFileKind;
   notes: string;
 };
 
@@ -57,6 +67,7 @@ export type PrintJobInput = {
   infillPercent?: string;
   printer?: string;
   team?: string;
+  fileKind?: PrintFileKind;
   notes?: string;
 };
 
@@ -66,6 +77,19 @@ export function isPrintStatus(value: string): value is PrintStatus {
 
 export function isPrintPriority(value: string): value is PrintPriority {
   return (PRINT_PRIORITIES as readonly string[]).includes(value);
+}
+
+export function isPrintFileKind(value: string): value is PrintFileKind {
+  return (PRINT_FILE_KINDS as readonly string[]).includes(value);
+}
+
+export function fileKindLabel(kind: PrintFileKind): string {
+  switch (kind) {
+    case "needs_slicing":
+      return "Needs slicing";
+    case "ready_to_print":
+      return "Ready-to-print bed";
+  }
 }
 
 export function statusLabel(status: PrintStatus): string {
@@ -131,6 +155,10 @@ export function normalizePrintJob(
     infillPercent: job.infillPercent ?? "",
     printer: job.printer ?? "",
     team: job.team ?? "",
+    fileKind:
+      job.fileKind && isPrintFileKind(job.fileKind)
+        ? job.fileKind
+        : "needs_slicing",
     notes: job.notes ?? "",
   };
 }

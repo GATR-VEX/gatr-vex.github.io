@@ -2,11 +2,15 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import {
+  PRINT_FILE_KINDS,
   PRINT_MATERIALS,
+  PRINT_PRINTERS,
   PRINT_PRIORITIES,
   PRINT_STATUSES,
+  fileKindLabel,
   priorityLabel,
   statusLabel,
+  type PrintFileKind,
   type PrintJob,
   type PrintPriority,
   type PrintStatus,
@@ -26,6 +30,7 @@ const emptyForm = {
   infillPercent: "",
   printer: "",
   team: "",
+  fileKind: "needs_slicing" as PrintFileKind,
   notes: "",
 };
 
@@ -59,11 +64,15 @@ export function PrintQueue() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [boardTab, setBoardTab] = useState<PrintStatus>("queued");
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState(emptyForm);
+  const [editStatus, setEditStatus] = useState<PrintStatus>("queued");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -95,6 +104,10 @@ export function PrintQueue() {
     }
   }, [selected, selectedId]);
 
+  useEffect(() => {
+    setEditing(false);
+  }, [selectedId, boardTab]);
+
   function setField<K extends keyof typeof emptyForm>(
     key: K,
     value: (typeof emptyForm)[K],
@@ -102,26 +115,108 @@ export function PrintQueue() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function setEditField<K extends keyof typeof emptyForm>(
+    key: K,
+    value: (typeof emptyForm)[K],
+  ) {
+    setEditForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function startEdit(job: PrintJob) {
+    setEditForm({
+      name: job.name,
+      description: job.description,
+      quantity: String(job.quantity),
+      material: job.material || "PLA",
+      color: job.color,
+      priority: job.priority,
+      neededBy: job.neededBy,
+      layerHeight: job.layerHeight,
+      infillPercent: job.infillPercent,
+      printer: job.printer,
+      team: job.team,
+      fileKind: job.fileKind,
+      notes: job.notes,
+    });
+    setEditStatus(job.status);
+    setEditing(true);
+    setError(null);
+  }
+
+  async function saveEdit(id: string) {
+    if (!editForm.name.trim()) {
+      setError("Part name is required.");
+      return;
+    }
+
+    setSavingEdit(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/prints/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...editForm,
+          quantity: Number(editForm.quantity) || 1,
+          status: editStatus,
+        }),
+      });
+      const data = (await res.json()) as { job?: PrintJob; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Could not save.");
+
+      if (data.job) {
+        setJobs((prev) => prev.map((j) => (j.id === id ? data.job! : j)));
+        if (data.job.status !== boardTab) {
+          setBoardTab(data.job.status);
+        }
+        setSelectedId(data.job.id);
+      }
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save.");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  function partNameForFile(file: File): string {
+    const stem =
+      file.name.replace(/\.(gcode\.)?(stl|obj|3mf)$/i, "") || file.name;
+    const base = form.name.trim();
+    if (files.length === 1) return base || stem;
+    if (!base) return stem;
+    return `${base} — ${stem}`;
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!file || !form.name.trim()) return;
+    if (files.length === 0) return;
 
     setSubmitting(true);
     setError(null);
 
-    const body = new FormData();
-    body.set("file", file);
-    for (const [key, value] of Object.entries(form)) {
-      body.set(key, value);
-    }
-
     try {
-      const res = await fetch("/api/prints", { method: "POST", body });
-      const data = (await res.json()) as { job?: PrintJob; error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Upload failed.");
+      let lastJob: PrintJob | undefined;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]!;
+        const body = new FormData();
+        body.set("file", file);
+        for (const [key, value] of Object.entries(form)) {
+          body.set(key, key === "name" ? partNameForFile(file) : value);
+        }
+        const res = await fetch("/api/prints", { method: "POST", body });
+        const data = (await res.json()) as { job?: PrintJob; error?: string };
+        if (!res.ok) {
+          throw new Error(
+            data.error ??
+              `Upload failed on “${file.name}” (${i + 1} of ${files.length}).`,
+          );
+        }
+        lastJob = data.job;
+      }
 
       setForm(emptyForm);
-      setFile(null);
+      setFiles([]);
       setShowAddForm(false);
       const input = document.getElementById(
         "print-file",
@@ -129,9 +224,9 @@ export function PrintQueue() {
       if (input) input.value = "";
 
       await load();
-      if (data.job) {
-        setBoardTab(data.job.status);
-        setSelectedId(data.job.id);
+      if (lastJob) {
+        setBoardTab(lastJob.status);
+        setSelectedId(lastJob.id);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
@@ -175,12 +270,15 @@ export function PrintQueue() {
   function closeAddForm() {
     setShowAddForm(false);
     setForm(emptyForm);
-    setFile(null);
+    setFiles([]);
     const input = document.getElementById(
       "print-file",
     ) as HTMLInputElement | null;
     if (input) input.value = "";
   }
+
+  const isBulk = files.length > 1;
+  const canSubmit = files.length > 0;
 
   return (
     <div className="space-y-10">
@@ -208,26 +306,80 @@ export function PrintQueue() {
               </button>
             </div>
             <form onSubmit={onSubmit} className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <Field label="Part name">
-                  <input
-                    type="text"
-                    required
-                    value={form.name}
-                    onChange={(e) => setField("name", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
-                <Field label="File (.stl / .obj / .3mf)">
-                  <input
-                    id="print-file"
-                    type="file"
-                    required
-                    accept=".stl,.3mf,.obj"
-                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                    className="w-full text-sm text-ink-muted file:mr-3 file:rounded-full file:border-0 file:bg-surface file:px-3 file:py-2 file:text-sm file:text-ink"
-                  />
-                </Field>
+              <Field
+                label={
+                  isBulk ? "Name prefix (optional)" : "Part name (optional)"
+                }
+              >
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setField("name", e.target.value)}
+                  className={inputClass}
+                  placeholder={
+                    isBulk
+                      ? "Applied before each file name"
+                      : "Defaults to file name"
+                  }
+                />
+              </Field>
+
+              <div className="space-y-2">
+                <input
+                  id="print-file"
+                  type="file"
+                  multiple
+                  accept=".stl,.3mf,.obj"
+                  className="sr-only"
+                  onChange={(e) => {
+                    const picked = Array.from(e.target.files ?? []);
+                    if (picked.length === 0) return;
+                    setFiles((prev) => {
+                      const next = [...prev];
+                      for (const file of picked) {
+                        const dup = next.some(
+                          (f) =>
+                            f.name === file.name &&
+                            f.size === file.size &&
+                            f.lastModified === file.lastModified,
+                        );
+                        if (!dup) next.push(file);
+                      }
+                      return next;
+                    });
+                    e.target.value = "";
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    document.getElementById("print-file")?.click()
+                  }
+                  className={btnPrimary}
+                >
+                  Add files
+                </button>
+                {files.length > 0 ? (
+                  <ul className="text-sm text-ink divide-y divide-rule border border-rule rounded-xl overflow-hidden">
+                    {files.map((f, i) => (
+                      <li
+                        key={`${f.name}-${f.size}-${f.lastModified}-${i}`}
+                        className="flex items-center justify-between gap-3 px-3 py-2"
+                      >
+                        <span className="truncate text-ink-muted">{f.name}</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFiles((prev) => prev.filter((_, j) => j !== i))
+                          }
+                          className="shrink-0 text-ink-muted hover:text-red-600 text-xs"
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </div>
 
               <Field label="Description">
@@ -319,13 +471,18 @@ export function PrintQueue() {
                   />
                 </Field>
                 <Field label="Printer">
-                  <input
-                    type="text"
+                  <select
                     value={form.printer}
                     onChange={(e) => setField("printer", e.target.value)}
                     className={inputClass}
-                    placeholder="e.g. Bambu X1C"
-                  />
+                  >
+                    <option value="">—</option>
+                    {PRINT_PRINTERS.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
                 </Field>
               </div>
 
@@ -343,6 +500,21 @@ export function PrintQueue() {
                     <option value="Other">Other</option>
                   </select>
                 </Field>
+                <Field label="File type">
+                  <select
+                    value={form.fileKind}
+                    onChange={(e) =>
+                      setField("fileKind", e.target.value as PrintFileKind)
+                    }
+                    className={inputClass}
+                  >
+                    {PRINT_FILE_KINDS.map((kind) => (
+                      <option key={kind} value={kind}>
+                        {fileKindLabel(kind)}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
               </div>
 
               <Field label="Notes">
@@ -358,10 +530,16 @@ export function PrintQueue() {
               <div className="flex flex-wrap items-center gap-3">
                 <button
                   type="submit"
-                  disabled={submitting || !file || !form.name.trim()}
+                  disabled={submitting || !canSubmit}
                   className={`${btnPrimary} disabled:opacity-50`}
                 >
-                  {submitting ? "Adding…" : "Add to queue"}
+                  {submitting
+                    ? isBulk
+                      ? `Adding ${files.length}…`
+                      : "Adding…"
+                    : isBulk
+                      ? `Add ${files.length} to queue`
+                      : "Add to queue"}
                 </button>
                 <button
                   type="button"
@@ -430,6 +608,7 @@ export function PrintQueue() {
                       </p>
                       <p className="text-xs text-ink-muted truncate mt-0.5">
                         {[
+                          fileKindLabel(job.fileKind),
                           job.material,
                           job.color,
                           job.quantity > 1 ? `×${job.quantity}` : "",
@@ -461,34 +640,70 @@ export function PrintQueue() {
                       : ""}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <select
-                    value={selected.status}
-                    onChange={(e) =>
-                      void setStatus(selected.id, e.target.value as PrintStatus)
-                    }
-                    className="border border-rule bg-white px-3 py-2 text-sm outline-none focus:border-ink rounded-full"
-                  >
-                    {PRINT_STATUSES.map((status) => (
-                      <option key={status} value={status}>
-                        {statusLabel(status)}
-                      </option>
-                    ))}
-                  </select>
-                  <a
-                    href={selected.fileUrl}
-                    download={selected.fileName}
-                    className="text-sm text-ink-muted hover:text-ink"
-                  >
-                    Download
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => void removeJob(selected.id)}
-                    className="text-sm text-ink-muted hover:text-red-600"
-                  >
-                    Delete
-                  </button>
+                <div className="flex flex-wrap items-center gap-3">
+                  {!editing ? (
+                    <>
+                      <select
+                        value={selected.status}
+                        onChange={(e) =>
+                          void setStatus(
+                            selected.id,
+                            e.target.value as PrintStatus,
+                          )
+                        }
+                        className="border border-rule bg-white px-3 py-2 text-sm outline-none focus:border-ink rounded-full"
+                      >
+                        {PRINT_STATUSES.map((status) => (
+                          <option key={status} value={status}>
+                            {statusLabel(status)}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => startEdit(selected)}
+                        className="text-sm text-ink-muted hover:text-ink"
+                      >
+                        Edit
+                      </button>
+                      <a
+                        href={selected.fileUrl}
+                        download={selected.fileName}
+                        className="text-sm text-ink-muted hover:text-ink"
+                      >
+                        Download
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => void removeJob(selected.id)}
+                        className="text-sm text-ink-muted hover:text-red-600"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        disabled={savingEdit}
+                        onClick={() => void saveEdit(selected.id)}
+                        className={`${btnPrimary} disabled:opacity-50`}
+                      >
+                        {savingEdit ? "Saving…" : "Save"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={savingEdit}
+                        onClick={() => {
+                          setEditing(false);
+                          setError(null);
+                        }}
+                        className={btnSecondary}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -498,27 +713,231 @@ export function PrintQueue() {
                 className="h-[320px] w-full border border-rule rounded-2xl overflow-hidden"
               />
 
-              <dl>
-                <DetailRow label="Description" value={selected.description} />
-                <DetailRow label="Quantity" value={String(selected.quantity)} />
-                <DetailRow label="Material" value={selected.material} />
-                <DetailRow label="Color" value={selected.color} />
-                <DetailRow
-                  label="Priority"
-                  value={priorityLabel(selected.priority)}
-                />
-                <DetailRow label="Needed by" value={selected.neededBy} />
-                <DetailRow label="Layer height" value={selected.layerHeight} />
-                <DetailRow label="Infill %" value={selected.infillPercent} />
-                <DetailRow label="Printer" value={selected.printer} />
-                <DetailRow label="Team" value={selected.team} />
-                <DetailRow label="Notes" value={selected.notes} />
-                <DetailRow label="Submitted by" value={selected.submittedBy} />
-                <DetailRow
-                  label="Submitted"
-                  value={new Date(selected.createdAt).toLocaleString()}
-                />
-              </dl>
+              {editing ? (
+                <div className="space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <Field label="Part name">
+                      <input
+                        type="text"
+                        required
+                        value={editForm.name}
+                        onChange={(e) => setEditField("name", e.target.value)}
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Status">
+                      <select
+                        value={editStatus}
+                        onChange={(e) =>
+                          setEditStatus(e.target.value as PrintStatus)
+                        }
+                        className={inputClass}
+                      >
+                        {PRINT_STATUSES.map((status) => (
+                          <option key={status} value={status}>
+                            {statusLabel(status)}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+
+                  <Field label="Description">
+                    <textarea
+                      rows={2}
+                      value={editForm.description}
+                      onChange={(e) =>
+                        setEditField("description", e.target.value)
+                      }
+                      className={inputClass}
+                    />
+                  </Field>
+
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Field label="Quantity">
+                      <input
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={editForm.quantity}
+                        onChange={(e) =>
+                          setEditField("quantity", e.target.value)
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Material">
+                      <select
+                        value={editForm.material}
+                        onChange={(e) =>
+                          setEditField("material", e.target.value)
+                        }
+                        className={inputClass}
+                      >
+                        <option value="">—</option>
+                        {PRINT_MATERIALS.map((m) => (
+                          <option key={m} value={m}>
+                            {m}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Color">
+                      <input
+                        type="text"
+                        value={editForm.color}
+                        onChange={(e) => setEditField("color", e.target.value)}
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Priority">
+                      <select
+                        value={editForm.priority}
+                        onChange={(e) =>
+                          setEditField(
+                            "priority",
+                            e.target.value as PrintPriority,
+                          )
+                        }
+                        className={inputClass}
+                      >
+                        {PRINT_PRIORITIES.map((p) => (
+                          <option key={p} value={p}>
+                            {priorityLabel(p)}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Field label="Needed by">
+                      <input
+                        type="date"
+                        value={editForm.neededBy}
+                        onChange={(e) =>
+                          setEditField("neededBy", e.target.value)
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Layer height (mm)">
+                      <input
+                        type="text"
+                        value={editForm.layerHeight}
+                        onChange={(e) =>
+                          setEditField("layerHeight", e.target.value)
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Infill (%)">
+                      <input
+                        type="text"
+                        value={editForm.infillPercent}
+                        onChange={(e) =>
+                          setEditField("infillPercent", e.target.value)
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Printer">
+                      <select
+                        value={editForm.printer}
+                        onChange={(e) =>
+                          setEditField("printer", e.target.value)
+                        }
+                        className={inputClass}
+                      >
+                        <option value="">—</option>
+                        {PRINT_PRINTERS.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Field label="Team">
+                      <select
+                        value={editForm.team}
+                        onChange={(e) => setEditField("team", e.target.value)}
+                        className={inputClass}
+                      >
+                        <option value="">—</option>
+                        <option value="GATR1">GATR1</option>
+                        <option value="GATR2">GATR2</option>
+                        <option value="Both">Both</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </Field>
+                    <Field label="File type">
+                      <select
+                        value={editForm.fileKind}
+                        onChange={(e) =>
+                          setEditField(
+                            "fileKind",
+                            e.target.value as PrintFileKind,
+                          )
+                        }
+                        className={inputClass}
+                      >
+                        {PRINT_FILE_KINDS.map((kind) => (
+                          <option key={kind} value={kind}>
+                            {fileKindLabel(kind)}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+
+                  <Field label="Notes">
+                    <textarea
+                      rows={2}
+                      value={editForm.notes}
+                      onChange={(e) => setEditField("notes", e.target.value)}
+                      className={inputClass}
+                    />
+                  </Field>
+                </div>
+              ) : (
+                <dl>
+                  <DetailRow label="Description" value={selected.description} />
+                  <DetailRow
+                    label="Quantity"
+                    value={String(selected.quantity)}
+                  />
+                  <DetailRow label="Material" value={selected.material} />
+                  <DetailRow label="Color" value={selected.color} />
+                  <DetailRow
+                    label="Priority"
+                    value={priorityLabel(selected.priority)}
+                  />
+                  <DetailRow label="Needed by" value={selected.neededBy} />
+                  <DetailRow
+                    label="Layer height"
+                    value={selected.layerHeight}
+                  />
+                  <DetailRow label="Infill %" value={selected.infillPercent} />
+                  <DetailRow label="Printer" value={selected.printer} />
+                  <DetailRow label="Team" value={selected.team} />
+                  <DetailRow
+                    label="File type"
+                    value={fileKindLabel(selected.fileKind)}
+                  />
+                  <DetailRow label="Notes" value={selected.notes} />
+                  <DetailRow
+                    label="Submitted by"
+                    value={selected.submittedBy}
+                  />
+                  <DetailRow
+                    label="Submitted"
+                    value={new Date(selected.createdAt).toLocaleString()}
+                  />
+                </dl>
+              )}
             </div>
           ) : null}
         </div>

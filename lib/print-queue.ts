@@ -3,11 +3,14 @@ import { promises as fs } from "fs";
 import path from "path";
 import { del, list, put } from "@vercel/blob";
 import {
+  isPrintFileKind,
   isPrintPriority,
   isPrintStatus,
   normalizePrintJob,
+  type PrintFileKind,
   type PrintJob,
   type PrintJobInput,
+  type PrintPriority,
   type PrintStatus,
 } from "@/lib/print-types";
 
@@ -191,6 +194,7 @@ export async function createPrintJob(input: {
     infillPercent: str(input.fields.infillPercent),
     printer: str(input.fields.printer),
     team: str(input.fields.team),
+    fileKind: input.fields.fileKind,
     notes: str(input.fields.notes),
   });
 
@@ -215,6 +219,107 @@ export async function updatePrintJobStatus(
     status,
     updatedAt: new Date().toISOString(),
   };
+  jobs[index] = updated;
+  await writeQueue(jobs);
+  return updated;
+}
+
+export type PrintJobUpdate = {
+  name?: string;
+  status?: PrintStatus;
+  description?: string;
+  quantity?: number;
+  material?: string;
+  color?: string;
+  priority?: PrintPriority;
+  neededBy?: string;
+  layerHeight?: string;
+  infillPercent?: string;
+  printer?: string;
+  team?: string;
+  fileKind?: PrintFileKind;
+  notes?: string;
+};
+
+export async function updatePrintJob(
+  id: string,
+  patch: PrintJobUpdate,
+): Promise<PrintJob | null> {
+  const jobs = await readQueue();
+  const index = jobs.findIndex((j) => j.id === id);
+  if (index < 0) return null;
+
+  const current = jobs[index]!;
+  const name =
+    patch.name !== undefined ? str(patch.name) : current.name;
+  if (!name) {
+    throw new Error("Part name is required.");
+  }
+
+  let quantity = current.quantity;
+  if (patch.quantity !== undefined) {
+    if (
+      !Number.isFinite(patch.quantity) ||
+      patch.quantity < 1 ||
+      patch.quantity > 100
+    ) {
+      throw new Error("Quantity must be between 1 and 100.");
+    }
+    quantity = patch.quantity;
+  }
+
+  const priority =
+    patch.priority !== undefined
+      ? isPrintPriority(patch.priority)
+        ? patch.priority
+        : current.priority
+      : current.priority;
+
+  const status =
+    patch.status !== undefined
+      ? isPrintStatus(patch.status)
+        ? patch.status
+        : current.status
+      : current.status;
+
+  const fileKind =
+    patch.fileKind !== undefined
+      ? isPrintFileKind(patch.fileKind)
+        ? patch.fileKind
+        : current.fileKind
+      : current.fileKind;
+
+  const updated = normalizePrintJob({
+    ...current,
+    name,
+    status,
+    quantity,
+    priority,
+    fileKind,
+    description:
+      patch.description !== undefined
+        ? str(patch.description)
+        : current.description,
+    material:
+      patch.material !== undefined ? str(patch.material) : current.material,
+    color: patch.color !== undefined ? str(patch.color) : current.color,
+    neededBy:
+      patch.neededBy !== undefined ? str(patch.neededBy) : current.neededBy,
+    layerHeight:
+      patch.layerHeight !== undefined
+        ? str(patch.layerHeight)
+        : current.layerHeight,
+    infillPercent:
+      patch.infillPercent !== undefined
+        ? str(patch.infillPercent)
+        : current.infillPercent,
+    printer:
+      patch.printer !== undefined ? str(patch.printer) : current.printer,
+    team: patch.team !== undefined ? str(patch.team) : current.team,
+    notes: patch.notes !== undefined ? str(patch.notes) : current.notes,
+    updatedAt: new Date().toISOString(),
+  });
+
   jobs[index] = updated;
   await writeQueue(jobs);
   return updated;
