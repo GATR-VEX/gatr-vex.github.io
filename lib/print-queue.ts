@@ -25,6 +25,7 @@ const DATA_DIR = path.join(process.cwd(), "data");
 const QUEUE_FILE = path.join(DATA_DIR, "print-queue.json");
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "prints");
 const BLOB_QUEUE_PATHNAME = "print-queue/queue.json";
+const BLOB_QUEUE_REVISIONS_PREFIX = "print-queue/revisions/";
 
 const ALLOWED_EXTENSIONS = new Set([".stl", ".3mf", ".obj"]);
 const MAX_FILE_BYTES = 50 * 1024 * 1024;
@@ -73,26 +74,57 @@ async function writeQueueLocal(jobs: PrintJob[]) {
   await fs.writeFile(QUEUE_FILE, JSON.stringify(jobs, null, 2), "utf8");
 }
 
+async function fetchJobsFromBlobUrl(url: string): Promise<PrintJob[]> {
+  // Bust CDN cache — public blob URLs are cached aggressively by default.
+  const bust = new URL(url);
+  bust.searchParams.set("t", String(Date.now()));
+  const res = await fetch(bust.toString(), { cache: "no-store" });
+  if (!res.ok) return [];
+  return normalizeJobs((await res.json()) as unknown);
+}
+
 async function readQueueBlob(): Promise<PrintJob[]> {
   try {
-    const listed = await list({ prefix: BLOB_QUEUE_PATHNAME, limit: 1 });
+    // Prefer versioned revisions (unique URL per write) so deletes/edits stick.
+    const revisions = await list({ prefix: BLOB_QUEUE_REVISIONS_PREFIX });
+    if (revisions.blobs.length > 0) {
+      const latest = [...revisions.blobs].sort(
+        (a, b) =>
+          new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime(),
+      )[0]!;
+      return fetchJobsFromBlobUrl(latest.url);
+    }
+
+    // Legacy single-file queue (pre-revision storage)
+    const listed = await list({ prefix: BLOB_QUEUE_PATHNAME, limit: 10 });
     const match = listed.blobs.find((b) => b.pathname === BLOB_QUEUE_PATHNAME);
     if (!match) return [];
-    const res = await fetch(match.url, { cache: "no-store" });
-    if (!res.ok) return [];
-    return normalizeJobs((await res.json()) as unknown);
+    return fetchJobsFromBlobUrl(match.url);
   } catch {
     return [];
   }
 }
 
 async function writeQueueBlob(jobs: PrintJob[]) {
-  await put(BLOB_QUEUE_PATHNAME, JSON.stringify(jobs, null, 2), {
+  const pathname = `${BLOB_QUEUE_REVISIONS_PREFIX}${Date.now()}-${randomUUID()}.json`;
+  await put(pathname, JSON.stringify(jobs, null, 2), {
     access: "public",
     contentType: "application/json",
     addRandomSuffix: false,
-    allowOverwrite: true,
+    // Keep cache short; reads also bust with a query param.
+    cacheControlMaxAge: 60,
   });
+
+  // Prune older revisions + legacy file so the queue doesn't grow forever.
+  try {
+    const listed = await list({ prefix: "print-queue/" });
+    const obsolete = listed.blobs.filter((b) => b.pathname !== pathname);
+    if (obsolete.length > 0) {
+      await del(obsolete.map((b) => b.url));
+    }
+  } catch {
+    // Best-effort cleanup
+  }
 }
 
 async function readQueue(): Promise<PrintJob[]> {
