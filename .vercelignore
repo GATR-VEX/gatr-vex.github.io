@@ -1,0 +1,6 @@
+.next
+node_modules
+.git
+*.3mf
+*.stl
+*.obj

@@ -6,19 +6,28 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "node -e \"require('fs').copyFileSync('node_modules/occt-import-js/dist/occt-import-js.wasm','public/occt-import-js.wasm')\""
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
+    "@vercel/blob": "^2.8.2",
+    "fflate": "^0.8.3",
     "lucide-react": "^1.7.0",
     "next": "16.2.2",
+    "next-auth": "^5.0.0-beta.32",
+    "occt-import-js": "^0.0.23",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.186.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
     "tailwindcss": "^4",

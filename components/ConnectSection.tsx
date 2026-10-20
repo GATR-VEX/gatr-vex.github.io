@@ -32,61 +32,57 @@ const LINKS = [
   {
     name: "Discord",
     href: DISCORD_INVITE_URL,
-    blurb: "Join the team server",
+    detail: "Join the team server for announcements, questions, and day-to-day coordination.",
+    cta: "Open Discord",
     Icon: DiscordIcon,
-    glow: "bg-[#5865F2]/15",
-    iconHover: "group-hover:text-[#5865F2]",
   },
   {
     name: "LinkedIn",
     href: LINKEDIN_URL,
-    blurb: "Follow competition updates",
+    detail: "Follow competition results, recruitment updates, and alumni news.",
+    cta: "View LinkedIn",
     Icon: LinkedInIcon,
-    glow: "bg-[#0A66C2]/15",
-    iconHover: "group-hover:text-[#0A66C2]",
   },
   {
     name: "Instagram",
     href: INSTAGRAM_URL,
-    blurb: "See builds and events",
+    detail: "See builds, competition weekends, and life with GATR1 and GATR2.",
+    cta: "View Instagram",
     Icon: InstagramIcon,
-    glow: "bg-fuchsia-400/15",
-    iconHover: "group-hover:text-fuchsia-600",
   },
 ] as const;
 
 export function ConnectSection() {
   return (
-    <div className="animate-in fade-in duration-500 py-12 md:py-16">
-      <div className="mb-12 max-w-xl">
-        <h2 className="text-2xl font-bold tracking-tight text-zinc-900">Connect with us</h2>
-        <p className="mt-3 text-zinc-500 font-light leading-relaxed">
-          Reach the team on Discord, LinkedIn, or Instagram.
-        </p>
+    <div className="py-6">
+      <div className="page-title mb-4">
+        <h1 className="title-text">Connect</h1>
       </div>
+      <p className="text-[17px] text-ink-muted leading-relaxed max-w-2xl mb-10">
+        Reach the team on Discord, LinkedIn, or Instagram.
+      </p>
 
       <div className="grid gap-6 sm:grid-cols-3">
-        {LINKS.map(({ name, href, blurb, Icon, glow, iconHover }) => (
+        {LINKS.map(({ name, href, detail, cta, Icon }) => (
           <a
             key={name}
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative flex flex-col items-start gap-4 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50/60 p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-zinc-300 hover:bg-white hover:shadow-sm"
+            className="group flex flex-col border border-rule bg-white p-6 hover:border-accent transition-colors"
           >
-            <div
-              className={`pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full blur-2xl transition-opacity duration-300 ${glow} opacity-70 group-hover:opacity-100`}
-              aria-hidden
-            />
-            <Icon
-              className={`relative h-8 w-8 text-zinc-800 transition-colors duration-300 ${iconHover}`}
-            />
-            <div className="relative">
-              <div className="font-semibold text-zinc-900 transition-colors group-hover:text-zinc-950">
-                {name}
-              </div>
-              <div className="mt-1 text-sm text-zinc-500">{blurb}</div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface text-ink group-hover:bg-accent group-hover:text-white transition-colors">
+              <Icon className="h-6 w-6" />
             </div>
+            <h2 className="mt-5 font-heading text-lg font-medium text-ink">
+              {name}
+            </h2>
+            <p className="mt-2 flex-1 text-sm text-ink-muted leading-relaxed">
+              {detail}
+            </p>
+            <span className="mt-5 text-sm font-medium text-accent group-hover:underline">
+              {cta} ↗
+            </span>
           </a>
         ))}
       </div>
