@@ -27,11 +27,33 @@ const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "prints");
 const BLOB_QUEUE_PATHNAME = "print-queue/queue.json";
 const BLOB_QUEUE_REVISIONS_PREFIX = "print-queue/revisions/";
 
-const ALLOWED_EXTENSIONS = new Set([".stl", ".3mf", ".obj"]);
-const MAX_FILE_BYTES = 50 * 1024 * 1024;
+export const PRINT_ALLOWED_EXTENSIONS = [".stl", ".3mf", ".obj"] as const;
+const ALLOWED_EXTENSIONS = new Set<string>(PRINT_ALLOWED_EXTENSIONS);
+/** App limit. Vercel serverless body limit is ~4.5MB — use client Blob upload above that. */
+export const MAX_PRINT_FILE_BYTES = 50 * 1024 * 1024;
+
+export function useBlobStorage(): boolean {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
 
 function useBlob(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  return useBlobStorage();
+}
+
+export function isAllowedPrintExtension(fileName: string): boolean {
+  return ALLOWED_EXTENSIONS.has(path.extname(fileName).toLowerCase());
+}
+
+export function isAllowedPrintBlobUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    const hostOk =
+      u.hostname.endsWith(".blob.vercel-storage.com") ||
+      u.hostname.endsWith(".public.blob.vercel-storage.com");
+    return hostOk && u.pathname.includes("/prints/");
+  } catch {
+    return false;
+  }
 }
 
 async function ensureDirs() {
@@ -159,34 +181,122 @@ function str(value: string | undefined): string {
   return (value ?? "").trim();
 }
 
+function buildJobFields(fields: PrintJobInput): {
+  name: string;
+  quantity: number;
+  priority: PrintPriority;
+  description: string;
+  material: string;
+  color: string;
+  neededBy: string;
+  layerHeight: string;
+  infillPercent: string;
+  printer: string;
+  team: string;
+  fileKind: PrintFileKind | undefined;
+  notes: string;
+} {
+  const name = str(fields.name);
+  if (!name) {
+    throw new Error("Part name is required.");
+  }
+
+  const quantity = fields.quantity ?? 1;
+  if (!Number.isFinite(quantity) || quantity < 1 || quantity > 100) {
+    throw new Error("Quantity must be between 1 and 100.");
+  }
+
+  const priorityRaw = str(fields.priority) || "normal";
+  const priority = isPrintPriority(priorityRaw) ? priorityRaw : "normal";
+
+  return {
+    name,
+    quantity,
+    priority,
+    description: str(fields.description),
+    material: str(fields.material),
+    color: str(fields.color),
+    neededBy: str(fields.neededBy),
+    layerHeight: str(fields.layerHeight),
+    infillPercent: str(fields.infillPercent),
+    printer: str(fields.printer),
+    team: str(fields.team),
+    fileKind: fields.fileKind,
+    notes: str(fields.notes),
+  };
+}
+
+async function appendJob(job: PrintJob): Promise<PrintJob> {
+  const jobs = await readQueue();
+  jobs.push(job);
+  await writeQueue(jobs);
+  return job;
+}
+
+/** Create a job from a file already uploaded to Vercel Blob (client upload). */
+export async function createPrintJobFromBlob(input: {
+  fileUrl: string;
+  fileName: string;
+  fileSize: number;
+  submittedBy: string;
+  submittedByName: string | null;
+  fields: PrintJobInput;
+}): Promise<PrintJob> {
+  const originalName = input.fileName || "model.stl";
+  if (!isAllowedPrintExtension(originalName)) {
+    throw new Error("File must be .stl, .3mf, or .obj.");
+  }
+  if (input.fileSize <= 0 || input.fileSize > MAX_PRINT_FILE_BYTES) {
+    throw new Error("File must be under 50 MB.");
+  }
+  if (!isAllowedPrintBlobUrl(input.fileUrl)) {
+    throw new Error("Invalid file URL.");
+  }
+
+  const built = buildJobFields(input.fields);
+  const now = new Date().toISOString();
+  const job = normalizePrintJob({
+    id: randomUUID(),
+    name: built.name,
+    status: "queued",
+    fileName: originalName,
+    fileUrl: input.fileUrl,
+    submittedBy: input.submittedBy,
+    submittedByName: input.submittedByName,
+    createdAt: now,
+    updatedAt: now,
+    description: built.description,
+    quantity: built.quantity,
+    material: built.material,
+    color: built.color,
+    priority: built.priority,
+    neededBy: built.neededBy,
+    layerHeight: built.layerHeight,
+    infillPercent: built.infillPercent,
+    printer: built.printer,
+    team: built.team,
+    fileKind: built.fileKind,
+    notes: built.notes,
+  });
+
+  return appendJob(job);
+}
+
 export async function createPrintJob(input: {
   file: File;
   submittedBy: string;
   submittedByName: string | null;
   fields: PrintJobInput;
 }): Promise<PrintJob> {
-  const name = str(input.fields.name);
-  if (!name) {
-    throw new Error("Part name is required.");
-  }
-
   const originalName = input.file.name || "model.stl";
-  const ext = path.extname(originalName).toLowerCase();
-  if (!ALLOWED_EXTENSIONS.has(ext)) {
+  if (!isAllowedPrintExtension(originalName)) {
     throw new Error("File must be .stl, .3mf, or .obj.");
   }
-  if (input.file.size <= 0 || input.file.size > MAX_FILE_BYTES) {
+  if (input.file.size <= 0 || input.file.size > MAX_PRINT_FILE_BYTES) {
     throw new Error("File must be under 50 MB.");
   }
 
-  const quantity = input.fields.quantity ?? 1;
-  if (!Number.isFinite(quantity) || quantity < 1 || quantity > 100) {
-    throw new Error("Quantity must be between 1 and 100.");
-  }
-
-  const priorityRaw = str(input.fields.priority) || "normal";
-  const priority = isPrintPriority(priorityRaw) ? priorityRaw : "normal";
-
+  const built = buildJobFields(input.fields);
   const id = randomUUID();
   const storedName = `${id}-${safeFileName(originalName)}`;
   const buffer = Buffer.from(await input.file.arrayBuffer());
@@ -208,7 +318,7 @@ export async function createPrintJob(input: {
   const now = new Date().toISOString();
   const job = normalizePrintJob({
     id,
-    name,
+    name: built.name,
     status: "queued",
     fileName: originalName,
     fileUrl,
@@ -216,24 +326,21 @@ export async function createPrintJob(input: {
     submittedByName: input.submittedByName,
     createdAt: now,
     updatedAt: now,
-    description: str(input.fields.description),
-    quantity,
-    material: str(input.fields.material),
-    color: str(input.fields.color),
-    priority,
-    neededBy: str(input.fields.neededBy),
-    layerHeight: str(input.fields.layerHeight),
-    infillPercent: str(input.fields.infillPercent),
-    printer: str(input.fields.printer),
-    team: str(input.fields.team),
-    fileKind: input.fields.fileKind,
-    notes: str(input.fields.notes),
+    description: built.description,
+    quantity: built.quantity,
+    material: built.material,
+    color: built.color,
+    priority: built.priority,
+    neededBy: built.neededBy,
+    layerHeight: built.layerHeight,
+    infillPercent: built.infillPercent,
+    printer: built.printer,
+    team: built.team,
+    fileKind: built.fileKind,
+    notes: built.notes,
   });
 
-  const jobs = await readQueue();
-  jobs.push(job);
-  await writeQueue(jobs);
-  return job;
+  return appendJob(job);
 }
 
 export async function updatePrintJobStatus(

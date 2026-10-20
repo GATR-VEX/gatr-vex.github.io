@@ -1,5 +1,6 @@
 "use client";
 
+import { upload } from "@vercel/blob/client";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import {
   PRINT_FILE_KINDS,
@@ -17,6 +18,32 @@ import {
 } from "@/lib/print-types";
 import { ModelViewer } from "@/components/ModelViewer";
 import { btnPrimary, btnSecondary, inputClass } from "@/lib/ui";
+
+const MAX_PRINT_FILE_BYTES = 50 * 1024 * 1024;
+
+async function readApiJson<T>(res: Response): Promise<T> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    if (
+      res.status === 413 ||
+      /request entity too large/i.test(text) ||
+      text.trimStart().startsWith("Request En")
+    ) {
+      throw new Error(
+        "File is too large for the server (about 4.5 MB max). Try a smaller file, or refresh — large uploads should go direct to storage.",
+      );
+    }
+    throw new Error(
+      text.trim().slice(0, 200) || `Request failed (${res.status}).`,
+    );
+  }
+}
+
+function safeUploadName(original: string): string {
+  return original.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120);
+}
 
 const emptyForm = {
   name: "",
@@ -73,14 +100,19 @@ export function PrintQueue() {
   const [editForm, setEditForm] = useState(emptyForm);
   const [editStatus, setEditStatus] = useState<PrintStatus>("queued");
   const [savingEdit, setSavingEdit] = useState(false);
+  const [clientUpload, setClientUpload] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
     try {
       const res = await fetch("/api/prints");
       if (!res.ok) throw new Error("Could not load queue.");
-      const data = (await res.json()) as { jobs: PrintJob[] };
+      const data = (await res.json()) as {
+        jobs: PrintJob[];
+        clientUpload?: boolean;
+      };
       setJobs(data.jobs);
+      setClientUpload(Boolean(data.clientUpload));
     } catch {
       setError("Could not load the print queue.");
     } finally {
@@ -188,6 +220,55 @@ export function PrintQueue() {
     return `${base} — ${stem}`;
   }
 
+  async function createJobForFile(file: File): Promise<PrintJob> {
+    if (file.size <= 0 || file.size > MAX_PRINT_FILE_BYTES) {
+      throw new Error(`“${file.name}” must be under 50 MB.`);
+    }
+
+    const fields = {
+      ...form,
+      name: partNameForFile(file),
+      quantity: Number(form.quantity) || 1,
+    };
+
+    if (clientUpload) {
+      const pathname = `prints/${crypto.randomUUID()}-${safeUploadName(file.name)}`;
+      const blob = await upload(pathname, file, {
+        access: "public",
+        handleUploadUrl: "/api/prints/upload",
+        multipart: file.size > 4 * 1024 * 1024,
+      });
+
+      const res = await fetch("/api/prints", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...fields,
+          fileUrl: blob.url,
+          fileName: file.name,
+          fileSize: file.size,
+        }),
+      });
+      const data = await readApiJson<{ job?: PrintJob; error?: string }>(res);
+      if (!res.ok || !data.job) {
+        throw new Error(data.error ?? `Could not add “${file.name}”.`);
+      }
+      return data.job;
+    }
+
+    const body = new FormData();
+    body.set("file", file);
+    for (const [key, value] of Object.entries(form)) {
+      body.set(key, key === "name" ? partNameForFile(file) : value);
+    }
+    const res = await fetch("/api/prints", { method: "POST", body });
+    const data = await readApiJson<{ job?: PrintJob; error?: string }>(res);
+    if (!res.ok || !data.job) {
+      throw new Error(data.error ?? `Could not add “${file.name}”.`);
+    }
+    return data.job;
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (files.length === 0) return;
@@ -199,20 +280,17 @@ export function PrintQueue() {
       let lastJob: PrintJob | undefined;
       for (let i = 0; i < files.length; i++) {
         const file = files[i]!;
-        const body = new FormData();
-        body.set("file", file);
-        for (const [key, value] of Object.entries(form)) {
-          body.set(key, key === "name" ? partNameForFile(file) : value);
-        }
-        const res = await fetch("/api/prints", { method: "POST", body });
-        const data = (await res.json()) as { job?: PrintJob; error?: string };
-        if (!res.ok) {
+        try {
+          lastJob = await createJobForFile(file);
+        } catch (err) {
+          const detail =
+            err instanceof Error ? err.message : "Upload failed.";
           throw new Error(
-            data.error ??
-              `Upload failed on “${file.name}” (${i + 1} of ${files.length}).`,
+            files.length > 1
+              ? `${detail} (file ${i + 1} of ${files.length})`
+              : detail,
           );
         }
-        lastJob = data.job;
       }
 
       setForm(emptyForm);
