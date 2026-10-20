@@ -44,9 +44,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (typeof body.material === "string") patch.material = body.material;
     if (typeof body.color === "string") patch.color = body.color;
     if (typeof body.neededBy === "string") patch.neededBy = body.neededBy;
-    if (typeof body.layerHeight === "string") patch.layerHeight = body.layerHeight;
     if (typeof body.infillPercent === "string")
       patch.infillPercent = body.infillPercent;
+    if (typeof body.walls === "string") patch.walls = body.walls;
     if (typeof body.printer === "string") patch.printer = body.printer;
     if (typeof body.team === "string") patch.team = body.team;
     if (typeof body.notes === "string") patch.notes = body.notes;

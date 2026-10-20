@@ -3,11 +3,19 @@
 import { upload } from "@vercel/blob/client";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import {
+  PRINT_FILE_ACCEPT,
+  PRINT_FILE_TYPES_LABEL,
+  isAllowedPrintExtension,
+  MAX_PRINT_FILE_BYTES,
+  printFileTypeError,
+} from "@/lib/print-files";
+import {
   PRINT_FILE_KINDS,
   PRINT_MATERIALS,
   PRINT_PRINTERS,
   PRINT_PRIORITIES,
   PRINT_STATUSES,
+  PRINT_WALL_OPTIONS,
   fileKindLabel,
   priorityLabel,
   statusLabel,
@@ -18,8 +26,6 @@ import {
 } from "@/lib/print-types";
 import { ModelViewer } from "@/components/ModelViewer";
 import { btnPrimary, btnSecondary, inputClass } from "@/lib/ui";
-
-const MAX_PRINT_FILE_BYTES = 50 * 1024 * 1024;
 
 async function readApiJson<T>(res: Response): Promise<T> {
   const text = await res.text();
@@ -53,8 +59,8 @@ const emptyForm = {
   color: "",
   priority: "normal" as PrintPriority,
   neededBy: "",
-  layerHeight: "",
   infillPercent: "",
+  walls: "",
   printer: "",
   team: "",
   fileKind: "needs_slicing" as PrintFileKind,
@@ -163,8 +169,8 @@ export function PrintQueue() {
       color: job.color,
       priority: job.priority,
       neededBy: job.neededBy,
-      layerHeight: job.layerHeight,
       infillPercent: job.infillPercent,
+      walls: job.walls,
       printer: job.printer,
       team: job.team,
       fileKind: job.fileKind,
@@ -213,7 +219,8 @@ export function PrintQueue() {
 
   function partNameForFile(file: File): string {
     const stem =
-      file.name.replace(/\.(gcode\.)?(stl|obj|3mf)$/i, "") || file.name;
+      file.name.replace(/\.(gcode\.)?(stl|obj|3mf|step|stp)$/i, "") ||
+      file.name;
     const base = form.name.trim();
     if (files.length === 1) return base || stem;
     if (!base) return stem;
@@ -221,6 +228,9 @@ export function PrintQueue() {
   }
 
   async function createJobForFile(file: File): Promise<PrintJob> {
+    if (!isAllowedPrintExtension(file.name)) {
+      throw new Error(printFileTypeError());
+    }
     if (file.size <= 0 || file.size > MAX_PRINT_FILE_BYTES) {
       throw new Error(`“${file.name}” must be under 50 MB.`);
     }
@@ -407,7 +417,7 @@ export function PrintQueue() {
                   id="print-file"
                   type="file"
                   multiple
-                  accept=".stl,.3mf,.obj"
+                  accept={PRINT_FILE_ACCEPT}
                   className="sr-only"
                   onChange={(e) => {
                     const picked = Array.from(e.target.files ?? []);
@@ -437,6 +447,9 @@ export function PrintQueue() {
                 >
                   Add files
                 </button>
+                <p className="text-xs text-ink-muted">
+                  Accepted: {PRINT_FILE_TYPES_LABEL}
+                </p>
                 {files.length > 0 ? (
                   <ul className="text-sm text-ink divide-y divide-rule border border-rule rounded-xl overflow-hidden">
                     {files.map((f, i) => (
@@ -530,15 +543,6 @@ export function PrintQueue() {
                     className={inputClass}
                   />
                 </Field>
-                <Field label="Layer height (mm)">
-                  <input
-                    type="text"
-                    value={form.layerHeight}
-                    onChange={(e) => setField("layerHeight", e.target.value)}
-                    className={inputClass}
-                    placeholder="e.g. 0.2"
-                  />
-                </Field>
                 <Field label="Infill (%)">
                   <input
                     type="text"
@@ -548,6 +552,23 @@ export function PrintQueue() {
                     placeholder="e.g. 20"
                   />
                 </Field>
+                <Field label="Walls">
+                  <select
+                    value={form.walls}
+                    onChange={(e) => setField("walls", e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">—</option>
+                    {PRINT_WALL_OPTIONS.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Field label="Printer">
                   <select
                     value={form.printer}
@@ -562,9 +583,6 @@ export function PrintQueue() {
                     ))}
                   </select>
                 </Field>
-              </div>
-
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Field label="Team">
                   <select
                     value={form.team}
@@ -899,16 +917,6 @@ export function PrintQueue() {
                         className={inputClass}
                       />
                     </Field>
-                    <Field label="Layer height (mm)">
-                      <input
-                        type="text"
-                        value={editForm.layerHeight}
-                        onChange={(e) =>
-                          setEditField("layerHeight", e.target.value)
-                        }
-                        className={inputClass}
-                      />
-                    </Field>
                     <Field label="Infill (%)">
                       <input
                         type="text"
@@ -919,6 +927,23 @@ export function PrintQueue() {
                         className={inputClass}
                       />
                     </Field>
+                    <Field label="Walls">
+                      <select
+                        value={editForm.walls}
+                        onChange={(e) => setEditField("walls", e.target.value)}
+                        className={inputClass}
+                      >
+                        <option value="">—</option>
+                        {PRINT_WALL_OPTIONS.map((n) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <Field label="Printer">
                       <select
                         value={editForm.printer}
@@ -935,9 +960,6 @@ export function PrintQueue() {
                         ))}
                       </select>
                     </Field>
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <Field label="Team">
                       <select
                         value={editForm.team}
@@ -994,11 +1016,8 @@ export function PrintQueue() {
                     value={priorityLabel(selected.priority)}
                   />
                   <DetailRow label="Needed by" value={selected.neededBy} />
-                  <DetailRow
-                    label="Layer height"
-                    value={selected.layerHeight}
-                  />
                   <DetailRow label="Infill %" value={selected.infillPercent} />
+                  <DetailRow label="Walls" value={selected.walls} />
                   <DetailRow label="Printer" value={selected.printer} />
                   <DetailRow label="Team" value={selected.team} />
                   <DetailRow

@@ -3,6 +3,11 @@ import { promises as fs } from "fs";
 import path from "path";
 import { del, list, put } from "@vercel/blob";
 import {
+  isAllowedPrintExtension,
+  MAX_PRINT_FILE_BYTES,
+  printFileTypeError,
+} from "@/lib/print-files";
+import {
   isPrintFileKind,
   isPrintPriority,
   isPrintStatus,
@@ -20,6 +25,13 @@ export {
   isPrintStatus,
   statusLabel,
 } from "@/lib/print-types";
+export {
+  isAllowedPrintExtension,
+  MAX_PRINT_FILE_BYTES,
+  PRINT_FILE_ACCEPT,
+  PRINT_FILE_TYPES_LABEL,
+  printFileTypeError,
+} from "@/lib/print-files";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const QUEUE_FILE = path.join(DATA_DIR, "print-queue.json");
@@ -27,21 +39,12 @@ const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "prints");
 const BLOB_QUEUE_PATHNAME = "print-queue/queue.json";
 const BLOB_QUEUE_REVISIONS_PREFIX = "print-queue/revisions/";
 
-export const PRINT_ALLOWED_EXTENSIONS = [".stl", ".3mf", ".obj"] as const;
-const ALLOWED_EXTENSIONS = new Set<string>(PRINT_ALLOWED_EXTENSIONS);
-/** App limit. Vercel serverless body limit is ~4.5MB — use client Blob upload above that. */
-export const MAX_PRINT_FILE_BYTES = 50 * 1024 * 1024;
-
 export function useBlobStorage(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
 
 function useBlob(): boolean {
   return useBlobStorage();
-}
-
-export function isAllowedPrintExtension(fileName: string): boolean {
-  return ALLOWED_EXTENSIONS.has(path.extname(fileName).toLowerCase());
 }
 
 export function isAllowedPrintBlobUrl(url: string): boolean {
@@ -189,8 +192,8 @@ function buildJobFields(fields: PrintJobInput): {
   material: string;
   color: string;
   neededBy: string;
-  layerHeight: string;
   infillPercent: string;
+  walls: string;
   printer: string;
   team: string;
   fileKind: PrintFileKind | undefined;
@@ -217,8 +220,8 @@ function buildJobFields(fields: PrintJobInput): {
     material: str(fields.material),
     color: str(fields.color),
     neededBy: str(fields.neededBy),
-    layerHeight: str(fields.layerHeight),
     infillPercent: str(fields.infillPercent),
+    walls: str(fields.walls),
     printer: str(fields.printer),
     team: str(fields.team),
     fileKind: fields.fileKind,
@@ -244,7 +247,7 @@ export async function createPrintJobFromBlob(input: {
 }): Promise<PrintJob> {
   const originalName = input.fileName || "model.stl";
   if (!isAllowedPrintExtension(originalName)) {
-    throw new Error("File must be .stl, .3mf, or .obj.");
+    throw new Error(printFileTypeError());
   }
   if (input.fileSize <= 0 || input.fileSize > MAX_PRINT_FILE_BYTES) {
     throw new Error("File must be under 50 MB.");
@@ -271,8 +274,8 @@ export async function createPrintJobFromBlob(input: {
     color: built.color,
     priority: built.priority,
     neededBy: built.neededBy,
-    layerHeight: built.layerHeight,
     infillPercent: built.infillPercent,
+    walls: built.walls,
     printer: built.printer,
     team: built.team,
     fileKind: built.fileKind,
@@ -290,7 +293,7 @@ export async function createPrintJob(input: {
 }): Promise<PrintJob> {
   const originalName = input.file.name || "model.stl";
   if (!isAllowedPrintExtension(originalName)) {
-    throw new Error("File must be .stl, .3mf, or .obj.");
+    throw new Error(printFileTypeError());
   }
   if (input.file.size <= 0 || input.file.size > MAX_PRINT_FILE_BYTES) {
     throw new Error("File must be under 50 MB.");
@@ -332,8 +335,8 @@ export async function createPrintJob(input: {
     color: built.color,
     priority: built.priority,
     neededBy: built.neededBy,
-    layerHeight: built.layerHeight,
     infillPercent: built.infillPercent,
+    walls: built.walls,
     printer: built.printer,
     team: built.team,
     fileKind: built.fileKind,
@@ -372,8 +375,8 @@ export type PrintJobUpdate = {
   color?: string;
   priority?: PrintPriority;
   neededBy?: string;
-  layerHeight?: string;
   infillPercent?: string;
+  walls?: string;
   printer?: string;
   team?: string;
   fileKind?: PrintFileKind;
@@ -444,14 +447,11 @@ export async function updatePrintJob(
     color: patch.color !== undefined ? str(patch.color) : current.color,
     neededBy:
       patch.neededBy !== undefined ? str(patch.neededBy) : current.neededBy,
-    layerHeight:
-      patch.layerHeight !== undefined
-        ? str(patch.layerHeight)
-        : current.layerHeight,
     infillPercent:
       patch.infillPercent !== undefined
         ? str(patch.infillPercent)
         : current.infillPercent,
+    walls: patch.walls !== undefined ? str(patch.walls) : current.walls,
     printer:
       patch.printer !== undefined ? str(patch.printer) : current.printer,
     team: patch.team !== undefined ? str(patch.team) : current.team,

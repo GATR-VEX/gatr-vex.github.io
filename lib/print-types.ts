@@ -29,6 +29,8 @@ export const PRINT_PRINTERS = [
 export const PRINT_FILE_KINDS = ["needs_slicing", "ready_to_print"] as const;
 export type PrintFileKind = (typeof PRINT_FILE_KINDS)[number];
 
+export const PRINT_WALL_OPTIONS = ["2", "3", "4", "5", "6", "8"] as const;
+
 export type PrintJob = {
   id: string;
   name: string;
@@ -47,8 +49,8 @@ export type PrintJob = {
   color: string;
   priority: PrintPriority;
   neededBy: string;
-  layerHeight: string;
   infillPercent: string;
+  walls: string;
   printer: string;
   team: string;
   fileKind: PrintFileKind;
@@ -63,8 +65,8 @@ export type PrintJobInput = {
   color?: string;
   priority?: PrintPriority;
   neededBy?: string;
-  layerHeight?: string;
   infillPercent?: string;
+  walls?: string;
   printer?: string;
   team?: string;
   fileKind?: PrintFileKind;
@@ -151,8 +153,8 @@ export function normalizePrintJob(
     priority:
       job.priority && isPrintPriority(job.priority) ? job.priority : "normal",
     neededBy: job.neededBy ?? "",
-    layerHeight: job.layerHeight ?? "",
     infillPercent: job.infillPercent ?? "",
+    walls: job.walls ?? "",
     printer: job.printer ?? "",
     team: job.team ?? "",
     fileKind:

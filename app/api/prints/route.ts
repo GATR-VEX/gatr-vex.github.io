@@ -38,10 +38,9 @@ function fieldsFromRecord(source: Record<string, unknown>): PrintJobInput {
     color: typeof source.color === "string" ? source.color : "",
     priority: isPrintPriority(priorityRaw) ? priorityRaw : "normal",
     neededBy: typeof source.neededBy === "string" ? source.neededBy : "",
-    layerHeight:
-      typeof source.layerHeight === "string" ? source.layerHeight : "",
     infillPercent:
       typeof source.infillPercent === "string" ? source.infillPercent : "",
+    walls: typeof source.walls === "string" ? source.walls : "",
     printer: typeof source.printer === "string" ? source.printer : "",
     team: typeof source.team === "string" ? source.team : "",
     fileKind: isPrintFileKind(fileKindRaw) ? fileKindRaw : "needs_slicing",
@@ -110,8 +109,8 @@ export async function POST(request: Request) {
       color: formString(form, "color"),
       priority: formString(form, "priority"),
       neededBy: formString(form, "neededBy"),
-      layerHeight: formString(form, "layerHeight"),
       infillPercent: formString(form, "infillPercent"),
+      walls: formString(form, "walls"),
       printer: formString(form, "printer"),
       team: formString(form, "team"),
       fileKind: formString(form, "fileKind"),

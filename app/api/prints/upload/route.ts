@@ -3,8 +3,9 @@ import { NextResponse } from "next/server";
 import {
   isAllowedPrintExtension,
   MAX_PRINT_FILE_BYTES,
-  useBlobStorage,
-} from "@/lib/print-queue";
+  printFileTypeError,
+} from "@/lib/print-files";
+import { useBlobStorage } from "@/lib/print-queue";
 import { requireMember } from "@/lib/require-member";
 
 export async function POST(request: Request): Promise<NextResponse> {
@@ -29,14 +30,14 @@ export async function POST(request: Request): Promise<NextResponse> {
       onBeforeGenerateToken: async (pathname) => {
         const base = pathname.split("/").pop() ?? pathname;
         if (!pathname.startsWith("prints/") || !isAllowedPrintExtension(base)) {
-          throw new Error("File must be .stl, .3mf, or .obj.");
+          throw new Error(printFileTypeError());
         }
 
         return {
           maximumSizeInBytes: MAX_PRINT_FILE_BYTES,
           addRandomSuffix: false,
           allowOverwrite: false,
-          // Don't restrict MIME — browsers often mislabel .stl/.3mf/.obj.
+          // Don't restrict MIME — browsers often mislabel CAD/mesh files.
           tokenPayload: JSON.stringify({
             email: session.user!.email,
           }),
