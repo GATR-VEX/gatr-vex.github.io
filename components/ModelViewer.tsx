@@ -13,6 +13,7 @@ import {
   revokePlateUrls,
   type ThreeMfPreview,
 } from "@/lib/threemf-preview";
+import { loadStepAsGroup } from "@/lib/step-preview";
 
 type ModelViewerProps = {
   url: string;
@@ -178,6 +179,79 @@ function PlatePreview({
   );
 }
 
+function StepMesh({ object }: { object: Object3D }) {
+  return <primitive object={object} />;
+}
+
+function StepViewer({
+  url,
+  className,
+}: {
+  url: string;
+  className?: string;
+}) {
+  const [object, setObject] = useState<Object3D | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setObject(null);
+    setError(null);
+
+    loadStepAsGroup(url)
+      .then((group) => {
+        if (!cancelled) setObject(group);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Could not preview STEP.",
+          );
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
+
+  if (error) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-zinc-50 text-sm text-zinc-500 ${className ?? ""}`}
+      >
+        {error}
+      </div>
+    );
+  }
+
+  if (!object) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-zinc-50 text-sm text-zinc-400 ${className ?? ""}`}
+      >
+        Loading STEP…
+      </div>
+    );
+  }
+
+  return (
+    <div className={`relative bg-zinc-50 ${className ?? ""}`}>
+      <Canvas
+        camera={{ position: [80, 60, 80], fov: 40, near: 0.1, far: 5000 }}
+        gl={{ antialias: true }}
+        className="h-full w-full"
+      >
+        <Suspense fallback={null}>
+          <MeshScene>
+            <StepMesh object={object} />
+          </MeshScene>
+        </Suspense>
+      </Canvas>
+    </div>
+  );
+}
+
 function ThreeMfViewer({
   url,
   className,
@@ -262,6 +336,10 @@ export function ModelViewer({ url, fileName, className }: ModelViewerProps) {
 
   if (ext === "3mf") {
     return <ThreeMfViewer url={url} className={className} />;
+  }
+
+  if (ext === "step" || ext === "stp") {
+    return <StepViewer url={url} className={className} />;
   }
 
   if (ext !== "stl" && ext !== "obj") {

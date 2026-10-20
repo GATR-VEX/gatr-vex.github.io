@@ -45,3 +45,4 @@ next-env.d.ts
 /data/print-queue.json
 /public/uploads/prints/*
 !/public/uploads/prints/.gitkeep
+/public/occt-import-js.wasm
